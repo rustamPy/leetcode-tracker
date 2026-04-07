@@ -51,9 +51,9 @@ export function LCProvider({ children }) {
     setLoading(true);
     setError(null);
 
-    // Production: serve the build-time baked data for the default user; live
-    // fetches cannot work on static hosting (no proxy for CORS or API routes).
-    if (IS_PROD && user.toLowerCase() === DEFAULT_USERNAME.toLowerCase()) {
+    // Production (GitHub Pages): there is no server proxy, so live GraphQL
+    // fetches will always fail. Always serve the build-time pre-fetched JSON.
+    if (IS_PROD) {
       const d = buildFallback();
       setData(d);
       setCachedAt(fallback.fetchedAt ? new Date(fallback.fetchedAt).getTime() : Date.now());

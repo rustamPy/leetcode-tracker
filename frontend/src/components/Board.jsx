@@ -62,7 +62,6 @@ export default function Board() {
   // Build completed cards from live hook data — random sample of 20
   const allApiCompleted = useMemo(() => {
     const subs = data?.submissions ?? [];
-    console.log("Fetched submissions from LeetCode API:", subs); // Debug log
     const seen = new Set();
     return subs
       .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })

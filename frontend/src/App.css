@@ -1,13 +1,13 @@
 /* ─── Variables ────────────────────────────────────────────────────────────── */
 :root {
-  --bg: #e8eeff;
-  --grid-maj: rgba(30, 64, 175, 0.16);
-  --grid-min: rgba(30, 64, 175, 0.06);
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface2: rgba(238, 243, 255, 0.95);
-  --border: rgba(30, 64, 175, 0.22);
-  --text: #0c1a3a;
-  --muted: #4e5f80;
+  --bg: #f0f3ff;
+  --grid-maj: rgba(30, 64, 175, 0.08);
+  --grid-min: rgba(30, 64, 175, 0.03);
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface2: rgba(245, 248, 255, 0.97);
+  --border: rgba(30, 64, 175, 0.15);
+  --text: #1a2a4a;
+  --muted: #5a6e8a;
   --blue: #1e40af;
   --blue-lt: #dbeafe;
   --amber: #d97706;
