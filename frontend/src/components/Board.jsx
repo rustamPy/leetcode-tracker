@@ -1,65 +1,56 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import Column from "./Column";
 import AddTaskModal from "./AddTaskModal";
-import { api, companies, getCompaniesForSlug } from "../services/api";
+import { api, companies, getCompaniesForSlug, userSubmissions } from "../services/api";
 
 const COLUMNS = ["completed", "doing", "todo"];
 const LABELS  = { completed: "Completed", doing: "In Progress", todo: "To Do" };
 
+/* Build deduplicated completed cards from static accepted submissions */
+function buildCompletedFromSubmissions() {
+  const seen = new Set();
+  return userSubmissions
+    .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })
+    .map(s => ({
+      id:        `ac-${s.titleSlug}`,
+      title:     s.title,
+      titleSlug: s.titleSlug,
+      difficulty: "Unknown",   // GraphQL recentAcSubmission doesn't include difficulty
+      status:    "completed",
+      companies: getCompaniesForSlug(s.titleSlug),
+      topics:    [],
+      url:       `https://leetcode.com/problems/${s.titleSlug}/`,
+      fromAPI:   true,
+    }));
+}
+
+const API_COMPLETED = buildCompletedFromSubmissions();
+
 export default function Board() {
-  const [tasks,          setTasks]          = useState([]);
-  const [submissions,    setSubmissions]    = useState([]);
-  const [addingStatus,   setAddingStatus]   = useState(null);
-  const [filterCompany,  setFilterCompany]  = useState("");
+  const [tasks,         setTasks]         = useState(() => api.getTasks());
+  const [addingStatus,  setAddingStatus]  = useState(null);
+  const [filterCompany, setFilterCompany] = useState("");
 
-  /* Load localStorage tasks */
-  useEffect(() => {
-    setTasks(api.getTasks());
-  }, []);
+  const handleMove   = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
+  const handleDelete = (id)          => { api.deleteTask(id);             setTasks(api.getTasks()); };
+  const handleAdd    = (task)         => { api.createTask(task);           setTasks(api.getTasks()); };
 
-  /* Load recent accepted submissions → synthetic completed cards */
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await api.getSubmissions(100);
-        const seen = new Set();
-        const list = (data?.submission ?? [])
-          .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })
-          .map(s => ({
-            id:         `ac-${s.titleSlug}`,
-            title:      s.title,
-            titleSlug:  s.titleSlug,
-            difficulty: s.difficulty ?? "Unknown",
-            status:     "completed",
-            companies:  getCompaniesForSlug(s.titleSlug),
-            topics:     [],
-            url:        `https://leetcode.com/problems/${s.titleSlug}/`,
-            fromAPI:    true,
-          }));
-        setSubmissions(list);
-      } catch (e) { console.error(e); }
-    })();
-  }, []);
-
-  const handleMove   = (id, status) => { const t = api.updateTask(id, { status }); setTasks(api.getTasks()); };
-  const handleDelete = (id)         => { api.deleteTask(id); setTasks(api.getTasks()); };
-  const handleAdd    = (task)        => { api.createTask(task); setTasks(api.getTasks()); };
-
-  /* All cards: API submissions for completed + localStorage for doing/todo */
-  const allCompleted = [
-    ...submissions,
+  const allCompleted = useMemo(() => [
+    ...API_COMPLETED,
     ...tasks.filter(t => t.status === "completed"),
-  ];
-  const allDoing = tasks.filter(t => t.status === "doing");
-  const allTodo  = tasks.filter(t => t.status === "todo");
+  ], [tasks]);
 
-  /* Company filter */
   const filter = (list) =>
     filterCompany ? list.filter(t => t.companies?.includes(filterCompany)) : list;
 
+  const colData = {
+    completed: filter(allCompleted),
+    doing:     filter(tasks.filter(t => t.status === "doing")),
+    todo:      filter(tasks.filter(t => t.status === "todo")),
+  };
+
   return (
     <div className="board-wrap">
-
       {/* Company filter bar */}
       <div className="company-filter-bar">
         <span className="company-filter-label">Company</span>
@@ -76,26 +67,19 @@ export default function Board() {
         )}
       </div>
 
-      {/* Kanban columns */}
       <div className="board">
-        {COLUMNS.map((col, i) => {
-          const rawList = col === "completed" ? allCompleted
-                        : col === "doing"     ? allDoing
-                        : allTodo;
-          const list = filter(rawList);
-          return (
-            <Column
-              key={col}
-              label={`0${i + 1} ${LABELS[col]}`}
-              status={col}
-              tasks={list}
-              columns={COLUMNS}
-              onMove={handleMove}
-              onDelete={(id) => { if (!id.startsWith("ac-")) handleDelete(id); }}
-              onAdd={() => setAddingStatus(col === "completed" ? "todo" : col)}
-            />
-          );
-        })}
+        {COLUMNS.map((col, i) => (
+          <Column
+            key={col}
+            label={`0${i + 1} — ${LABELS[col]}`}
+            status={col}
+            tasks={colData[col]}
+            columns={COLUMNS}
+            onMove={handleMove}
+            onDelete={(id) => { if (!id.startsWith("ac-")) handleDelete(id); }}
+            onAdd={() => setAddingStatus(col === "completed" ? "todo" : col)}
+          />
+        ))}
       </div>
 
       {addingStatus && (

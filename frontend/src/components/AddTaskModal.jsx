@@ -1,43 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
-import { api, companies, getProblemsForCompany } from "../services/api";
+import { useState, useEffect } from "react";
+import { api, companies, getProblemsForCompany, searchProblems } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
 export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
-  const [mode,       setMode]       = useState("company"); // "company" | "search"
+  const [mode,       setMode]       = useState("company");
   const [company,    setCompany]    = useState("");
   const [query,      setQuery]      = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [status,     setStatus]     = useState(initialStatus);
   const [results,    setResults]    = useState([]);
-  const [loading,    setLoading]    = useState(false);
 
-  // Company mode — sync, instant
   useEffect(() => {
-    if (mode !== "company") return;
-    if (!company) { setResults([]); return; }
-    let list = getProblemsForCompany(company);
-    if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
-    if (query)      list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
-    setResults(list.slice(0, 60));
+    if (mode === "company") {
+      if (!company) { setResults([]); return; }
+      let list = getProblemsForCompany(company);
+      if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
+      if (query)      list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
+      setResults(list.slice(0, 60));
+    } else {
+      setResults(searchProblems({ query, difficulty }));
+    }
   }, [mode, company, difficulty, query]);
-
-  // Search mode — async, debounced
-  const searchAPI = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.getProblems({ limit: 20, difficulty: difficulty || undefined });
-      const list = data?.problemsetQuestionList ?? [];
-      setResults(query ? list.filter(p => p.title.toLowerCase().includes(query.toLowerCase())) : list);
-    } catch { setResults([]); }
-    finally   { setLoading(false); }
-  }, [query, difficulty]);
-
-  useEffect(() => {
-    if (mode !== "search") return;
-    const t = setTimeout(searchAPI, 350);
-    return () => clearTimeout(t);
-  }, [mode, searchAPI]);
 
   const handleAdd = (p) => {
     onAdd({
@@ -46,7 +30,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
       difficulty: p.difficulty,
       status,
       companies:  p.companies ?? (company ? [company] : []),
-      topics:     p.topics ?? p.topicTags?.map(t => t.name) ?? [],
+      topics:     p.topics ?? [],
       url:        p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
     });
     onClose();
@@ -55,31 +39,23 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="modal-head">
           <h3>Add Problem</h3>
           <button className="modal-x" onClick={onClose}>✕</button>
         </div>
 
-        {/* Mode toggle */}
         <div className="modal-tabs">
           <button className={`modal-tab ${mode === "company" ? "active" : ""}`} onClick={() => setMode("company")}>
             Browse by Company
           </button>
           <button className={`modal-tab ${mode === "search" ? "active" : ""}`} onClick={() => setMode("search")}>
-            Search All
+            Search Problems
           </button>
         </div>
 
-        {/* Filters */}
         <div className="modal-filters">
           {mode === "company" && (
-            <select
-              className="modal-sel modal-sel--company"
-              value={company}
-              onChange={e => setCompany(e.target.value)}
-            >
+            <select className="modal-sel modal-sel--company" value={company} onChange={e => setCompany(e.target.value)}>
               <option value="">Select company...</option>
               {companies.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -87,7 +63,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           <input
             autoFocus
             className="modal-input"
-            placeholder={mode === "company" ? "Filter by title..." : "Search problems..."}
+            placeholder={mode === "company" ? "Filter by title..." : "Search by title..."}
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
@@ -103,13 +79,14 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           </select>
         </div>
 
-        {/* Results */}
         <div className="modal-list">
           {mode === "company" && !company && (
-            <p className="modal-hint">Select a company to browse its problems</p>
+            <p className="modal-hint">Select a company to browse its interview problems</p>
           )}
-          {loading && <p className="modal-hint">Searching...</p>}
-          {!loading && (mode !== "company" || company) && results.length === 0 && (
+          {mode === "search" && !query && !difficulty && (
+            <p className="modal-hint">Type to search 1,820 company-tagged problems</p>
+          )}
+          {results.length === 0 && (mode === "search" ? (query || difficulty) : company) && (
             <p className="modal-hint">No results</p>
           )}
           {results.map(p => (

@@ -3,10 +3,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 6 * * *"   # refresh LeetCode data daily at 06:00 UTC
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write          # needed to commit refreshed userData.json
   pages: write
   id-token: write
 
@@ -19,6 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch LeetCode user data
+        run: python3 scripts/fetch_user_data.py
 
       - uses: actions/setup-node@v4
         with:

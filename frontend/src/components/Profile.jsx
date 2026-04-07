@@ -1,70 +1,63 @@
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
+import { userProfile, userSolved, userContest, dataFetchedAt } from "../services/api";
 
-const DIFF = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
+const TOTAL = { Easy: 880, Medium: 1842, Hard: 816 };
+
+function Bar({ label, solved, total, color }) {
+  const pct = Math.min(100, Math.round((solved / total) * 100));
+  return (
+    <div className="diff-row">
+      <span className="diff-label" style={{ color }}>{label}</span>
+      <div className="diff-bar-wrap">
+        <div className="diff-bar-fill" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className="diff-count">{solved}<span className="diff-total">/{total}</span></span>
+    </div>
+  );
+}
 
 export default function Profile() {
-  const [profile, setProfile] = useState(null);
-  const [solved, setSolved] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { realName, userAvatar, ranking, countryName, starRating } = userProfile;
+  const { solvedProblem, easySolved, mediumSolved, hardSolved }    = userSolved;
 
-  useEffect(() => {
-    Promise.all([api.getProfile(), api.getSolved()])
-      .then(([p, s]) => { setProfile(p); setSolved(s); })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="profile-card profile-skeleton" />;
-  if (error) return <div className="profile-card profile-error">Could not load profile — {error}</div>;
-
-  const total = solved?.solvedProblem ?? 0;
-  const easy = solved?.easySolved ?? 0;
-  const med = solved?.mediumSolved ?? 0;
-  const hard = solved?.hardSolved ?? 0;
-  console.log(profile);
-  const bars = [
-    { label: "Easy", val: easy, max: 800, color: DIFF.Easy },
-    { label: "Medium", val: med, max: 1600, color: DIFF.Medium },
-    { label: "Hard", val: hard, max: 700, color: DIFF.Hard },
-  ];
+  const fetchDate = dataFetchedAt
+    ? new Date(dataFetchedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : null;
 
   return (
     <div className="profile-card">
-      <div className="profile-avatar-wrap">
-        
-        {profile?.avatar
-          ? <img className="profile-avatar" src={profile.avatar} alt="avatar" />
-          : <div className="profile-avatar-placeholder">{(profile?.name || "R")[0]}</div>
-        }
-        <div className="profile-badge">#{profile?.ranking ?? "—"}</div>
-      </div>
-
-      <div className="profile-body">
-        <div className="profile-names">
-          <h1 className="profile-name">{profile?.name || "thisisrustam"}</h1>
+      <div className="profile-top">
+        <div className="avatar-wrap">
+          <img src={userAvatar} alt={realName} className="avatar" />
+          {userContest?.rating && (
+            <span className="rank-badge">{Math.round(userContest.rating)}</span>
+          )}
+        </div>
+        <div className="profile-info">
+          <h2 className="profile-name">{realName || "thisisrustam"}</h2>
           <span className="profile-handle">@thisisrustam</span>
+          <div className="profile-meta">
+            {countryName && <span className="meta-chip">{countryName}</span>}
+            {ranking > 0  && <span className="meta-chip">#{ranking.toLocaleString()}</span>}
+            {userContest?.attendedContestsCount > 0 && (
+              <span className="meta-chip">{userContest.attendedContestsCount} contests</span>
+            )}
+          </div>
         </div>
-
-        <div className="profile-stat-row">
-          <div className="profile-total">
-            <span className="profile-total-num">{total}</span>
-            <span className="profile-total-label">Problems Solved</span>
-          </div>
-          <div className="profile-bars">
-            {bars.map(({ label, val, max, color }) => (
-              <div key={label} className="bar-row">
-                <span className="bar-label">{label}</span>
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ width: `${Math.min((val / max) * 100, 100)}%`, background: color }} />
-                </div>
-                <span className="bar-val" style={{ color }}>{val}</span>
-              </div>
-            ))}
-          </div>
+        <div className="profile-total">
+          <span className="total-num">{solvedProblem}</span>
+          <span className="total-lbl">solved</span>
         </div>
       </div>
+
+      <div className="diff-bars">
+        <Bar label="Easy"   solved={easySolved}   total={TOTAL.Easy}   color="#059669" />
+        <Bar label="Medium" solved={mediumSolved}  total={TOTAL.Medium} color="#d97706" />
+        <Bar label="Hard"   solved={hardSolved}    total={TOTAL.Hard}   color="#dc2626" />
+      </div>
+
+      {fetchDate && (
+        <p className="profile-timestamp">Data snapshot: {fetchDate}</p>
+      )}
     </div>
   );
 }
