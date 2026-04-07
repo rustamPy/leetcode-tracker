@@ -1,8 +1,10 @@
+import { LCProvider, useLeetCode } from "./hooks/useLeetCode";
 import Profile from "./components/Profile";
 import Board from "./components/Board";
 import "./App.css";
 
-export default function App() {
+function AppInner() {
+  const { username } = useLeetCode();
   return (
     <div className="app">
       <header className="header">
@@ -10,14 +12,9 @@ export default function App() {
           <div className="masthead">
             <span className="masthead-label">PROBLEM TRACKER</span>
             <h1 className="masthead-title">LeetCode Log</h1>
-            <span className="masthead-sub">thisisrustam / daily practice record</span>
+            <span className="masthead-sub">{username} / daily practice record</span>
           </div>
-          <a
-            className="header-link"
-            href="https://leetcode.com/thisisrustam"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a className="header-link" href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
             Open Profile
           </a>
         </div>
@@ -33,9 +30,19 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <span>thisisrustam &mdash; LeetCode Tracker</span>
-        <a href="https://leetcode.com/thisisrustam" target="_blank" rel="noreferrer">leetcode.com/thisisrustam</a>
+        <span>{username} &mdash; LeetCode Tracker</span>
+        <a href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
+          leetcode.com/{username}
+        </a>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LCProvider>
+      <AppInner />
+    </LCProvider>
   );
 }
