@@ -60,7 +60,9 @@ export default function ProblemDrawer({ problem, loading, onClose }) {
         )}
 
         {!loading && !problem?.question && (
-          <p className="drawer-empty">No description available.</p>
+          <div className="drawer-body">
+            <p className="drawer-empty">No description available. <a href={`https://leetcode.com/problems/${problem?.titleSlug}/`} target="_blank" rel="noreferrer">Open on LeetCode ↗</a></p>
+          </div>
         )}
       </div>
     </div>

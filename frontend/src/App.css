@@ -626,9 +626,17 @@ body {
   text-decoration: none;
   line-height: 1.35;
   flex: 1;
+  /* button reset */
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+  transition: color 0.12s;
 }
 
-a.task-title:hover {
+.task-title:hover {
   color: var(--blue);
   text-decoration: underline;
 }

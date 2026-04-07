@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Column from "./Column";
 import AddTaskModal from "./AddTaskModal";
+import ProblemDrawer from "./ProblemDrawer";
 import { api, companies, getCompaniesForSlug } from "../services/api";
 import { useLeetCode } from "../hooks/useLeetCode";
 
@@ -13,9 +14,44 @@ export default function Board() {
   const [addingStatus,  setAddingStatus]  = useState(null);
   const [filterCompany, setFilterCompany] = useState("");
 
+  // Drawer state
+  const [drawerOpen,    setDrawerOpen]    = useState(false);
+  const [drawerLoading, setDrawerLoading] = useState(false);
+  const [drawerProblem, setDrawerProblem] = useState(null);
+
   const handleMove   = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
   const handleDelete = (id)          => { api.deleteTask(id);             setTasks(api.getTasks()); };
   const handleAdd    = (task)         => { api.createTask(task);           setTasks(api.getTasks()); };
+
+  const handleOpenProblem = useCallback(async (task) => {
+    setDrawerOpen(true);
+    setDrawerLoading(true);
+    setDrawerProblem(null);
+    try {
+      const res  = await fetch(`/api/problem?titleSlug=${encodeURIComponent(task.titleSlug)}`);
+      const json = await res.json();
+      setDrawerProblem({
+        title:      json.questionTitle  ?? task.title,
+        titleSlug:  task.titleSlug,
+        questionId: json.questionFrontendId ?? null,
+        difficulty: json.difficulty    ?? task.difficulty,
+        question:   json.question      ?? null,
+        topicTags:  json.topicTags     ?? [],
+        hints:      json.hints         ?? [],
+        url:        task.url ?? `https://leetcode.com/problems/${task.titleSlug}/`,
+      });
+    } catch {
+      setDrawerProblem({
+        title:     task.title,
+        titleSlug: task.titleSlug,
+        difficulty: task.difficulty,
+        question:  null,
+        topicTags: [],
+      });
+    } finally {
+      setDrawerLoading(false);
+    }
+  }, []);
 
   // Build completed cards from live hook data
   const apiCompleted = useMemo(() => {
@@ -69,6 +105,7 @@ export default function Board() {
             onMove={handleMove}
             onDelete={(id) => { if (!id.startsWith("ac-")) handleDelete(id); }}
             onAdd={() => setAddingStatus(col === "completed" ? "todo" : col)}
+            onOpen={handleOpenProblem}
           />
         ))}
       </div>
@@ -78,6 +115,14 @@ export default function Board() {
           initialStatus={addingStatus}
           onClose={() => setAddingStatus(null)}
           onAdd={handleAdd}
+        />
+      )}
+
+      {drawerOpen && (
+        <ProblemDrawer
+          problem={drawerProblem}
+          loading={drawerLoading}
+          onClose={() => { setDrawerOpen(false); setDrawerProblem(null); }}
         />
       )}
     </div>

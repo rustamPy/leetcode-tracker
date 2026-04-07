@@ -3,7 +3,7 @@
  * caches results in localStorage, supports any username.
  */
 
-const GQL        = "https://leetcode.com/graphql";
+const GQL        = "/lc-graphql";        // proxied via Vite → leetcode.com/graphql
 const CACHE_KEY  = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
 const CACHE_TTL  = 6 * 60 * 60 * 1000;  // 6 hours
 
@@ -47,7 +47,7 @@ query GetSubs($username: String!, $limit: Int!) {
 async function gql(query, variables) {
   const res = await fetch(GQL, {
     method:  "POST",
-    headers: { "Content-Type": "application/json", "Referer": "https://leetcode.com" },
+    headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ query, variables }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

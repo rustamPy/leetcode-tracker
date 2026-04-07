@@ -7,7 +7,7 @@ const COL = {
   todo: { label: "To Do", marker: "03", color: "#1e40af" },
 };
 
-export default function Column({ status, tasks, columns, onMove, onDelete, onAdd }) {
+export default function Column({ status, tasks, columns, onMove, onDelete, onAdd, onOpen }) {
   const { label, marker, color } = COL[status];
   const [search, setSearch] = useState("");
 
@@ -44,6 +44,7 @@ export default function Column({ status, tasks, columns, onMove, onDelete, onAdd
             columns={columns}
             onMove={onMove}
             onDelete={onDelete}
+            onOpen={onOpen}
           />
         ))}
       </div>
