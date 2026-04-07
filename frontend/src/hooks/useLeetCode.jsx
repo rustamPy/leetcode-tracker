@@ -7,7 +7,6 @@ const DEFAULT_USER_KEY = "lc_username_v1";
 const DEFAULT_USERNAME = fallback.username ?? "thisisrustam";
 
 function readStoredUsername() {
-  // Cookie takes precedence (survives localStorage clears, works across tabs)
   return getCookie(DEFAULT_USER_KEY) ?? localStorage.getItem(DEFAULT_USER_KEY) ?? DEFAULT_USERNAME;
 }
 

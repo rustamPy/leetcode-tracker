@@ -1,37 +1,39 @@
 import { useState, useEffect } from "react";
-import { api, companies, getProblemsForCompany, searchProblems } from "../services/api";
+import { api, companies, getProblemsForCompany, searchAllProblems } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
 export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
-  const [mode,       setMode]       = useState("company");
-  const [company,    setCompany]    = useState("");
-  const [query,      setQuery]      = useState("");
+  const [mode, setMode] = useState("company");
+  const [company, setCompany] = useState("");
+  const [query, setQuery] = useState("");
   const [difficulty, setDifficulty] = useState("");
-  const [status,     setStatus]     = useState(initialStatus);
-  const [results,    setResults]    = useState([]);
+  const [status, setStatus] = useState(initialStatus);
+  const [results, setResults] = useState([]);
 
   useEffect(() => {
     if (mode === "company") {
       if (!company) { setResults([]); return; }
       let list = getProblemsForCompany(company);
       if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
-      if (query)      list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
+      if (query) list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
       setResults(list.slice(0, 60));
-    } else {
-      setResults(searchProblems({ query, difficulty }));
+      return;
     }
+
+    // Search mode — instant local search over all 3,647 problems
+    setResults(searchAllProblems({ query, difficulty }));
   }, [mode, company, difficulty, query]);
 
   const handleAdd = (p) => {
     onAdd({
-      title:      p.title,
-      titleSlug:  p.titleSlug,
+      title: p.title,
+      titleSlug: p.titleSlug,
       difficulty: p.difficulty,
       status,
-      companies:  p.companies ?? (company ? [company] : []),
-      topics:     p.topics ?? [],
-      url:        p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
+      companies: p.companies ?? (company ? [company] : []),
+      topics: p.topics ?? [],
+      url: p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
     });
     onClose();
   };
@@ -84,7 +86,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <p className="modal-hint">Select a company to browse its interview problems</p>
           )}
           {mode === "search" && !query && !difficulty && (
-            <p className="modal-hint">Type to search 1,820 company-tagged problems</p>
+            <p className="modal-hint">Type a title or pick a difficulty to search all 3,647 problems</p>
           )}
           {results.length === 0 && (mode === "search" ? (query || difficulty) : company) && (
             <p className="modal-hint">No results</p>

@@ -154,6 +154,34 @@ export async function fetchUserData(username, { force = false } = {}) {
   return { data, fromCache: false, cachedAt: Date.now() };
 }
 
+// ── Fetch full problem content (description, tags, hints) ─────
+const PROBLEM_QUERY = `
+query GetProblem($titleSlug: String!) {
+  question(titleSlug: $titleSlug) {
+    questionFrontendId
+    title
+    difficulty
+    content
+    topicTags { name slug }
+    hints
+  }
+}`;
+
+export async function fetchProblem(titleSlug) {
+  const data = await gql(PROBLEM_QUERY, { titleSlug });
+  const q = data?.question;
+  if (!q) return null;
+  return {
+    questionId: q.questionFrontendId ?? null,
+    title: q.title ?? titleSlug,
+    titleSlug,
+    difficulty: q.difficulty ?? null,
+    question: q.content ?? null,
+    topicTags: q.topicTags ?? [],
+    hints: q.hints ?? [],
+  };
+}
+
 // ── Validate username (lightweight — only checks matchedUser) ──
 export async function validateUsername(username) {
   if (!username?.trim()) return { valid: false, error: "Username required" };

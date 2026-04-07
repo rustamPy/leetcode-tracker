@@ -2,56 +2,51 @@ import { useState, useMemo, useCallback } from "react";
 import Column from "./Column";
 import AddTaskModal from "./AddTaskModal";
 import ProblemDrawer from "./ProblemDrawer";
-import { api, companies, getCompaniesForSlug } from "../services/api";
+import { api, companies, getCompaniesForSlug, getProblemBySlug } from "../services/api";
+import { fetchProblem } from "../services/leetcodeAPI";
 import { useLeetCode } from "../hooks/useLeetCode";
 
 const COLUMNS = ["completed", "doing", "todo"];
-const LABELS  = { completed: "Completed", doing: "In Progress", todo: "To Do" };
-
-// In production (GitHub Pages) there is no /api proxy — call the public API directly.
-const PROBLEM_API = import.meta.env.PROD
-  ? "https://alfa-leetcode-api.onrender.com/select"
-  : "/api/problem";
+const LABELS = { completed: "Completed", doing: "In Progress", todo: "To Do" };
 
 export default function Board() {
   const { data } = useLeetCode();
-  const [tasks,         setTasks]         = useState(() => api.getTasks());
-  const [addingStatus,  setAddingStatus]  = useState(null);
+  const [tasks, setTasks] = useState(() => api.getTasks());
+  const [addingStatus, setAddingStatus] = useState(null);
   const [filterCompany, setFilterCompany] = useState("");
   const [completedSeed, setCompletedSeed] = useState(0);
 
   // Drawer state
-  const [drawerOpen,    setDrawerOpen]    = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [drawerProblem, setDrawerProblem] = useState(null);
 
-  const handleMove   = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
-  const handleDelete = (id)          => { api.deleteTask(id);             setTasks(api.getTasks()); };
-  const handleAdd    = (task)         => { api.createTask(task);           setTasks(api.getTasks()); };
+  const handleMove = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
+  const handleDelete = (id) => { api.deleteTask(id); setTasks(api.getTasks()); };
+  const handleAdd = (task) => { api.createTask(task); setTasks(api.getTasks()); };
 
   const handleOpenProblem = useCallback(async (task) => {
     setDrawerOpen(true);
     setDrawerLoading(true);
     setDrawerProblem(null);
     try {
-      const res  = await fetch(`${PROBLEM_API}?titleSlug=${encodeURIComponent(task.titleSlug)}`);
-      const json = await res.json();
+      const problem = await fetchProblem(task.titleSlug);
       setDrawerProblem({
-        title:      json.questionTitle  ?? task.title,
-        titleSlug:  task.titleSlug,
-        questionId: json.questionFrontendId ?? null,
-        difficulty: json.difficulty    ?? task.difficulty,
-        question:   json.question      ?? null,
-        topicTags:  json.topicTags     ?? [],
-        hints:      json.hints         ?? [],
-        url:        task.url ?? `https://leetcode.com/problems/${task.titleSlug}/`,
+        title: problem?.title ?? task.title,
+        titleSlug: task.titleSlug,
+        questionId: problem?.questionId ?? null,
+        difficulty: problem?.difficulty ?? task.difficulty,
+        question: problem?.question ?? null,
+        topicTags: problem?.topicTags ?? [],
+        hints: problem?.hints ?? [],
+        url: task.url ?? `https://leetcode.com/problems/${task.titleSlug}/`,
       });
     } catch {
       setDrawerProblem({
-        title:     task.title,
+        title: task.title,
         titleSlug: task.titleSlug,
         difficulty: task.difficulty,
-        question:  null,
+        question: null,
         topicTags: [],
       });
     } finally {
@@ -66,15 +61,15 @@ export default function Board() {
     return subs
       .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })
       .map(s => ({
-        id:        `ac-${s.titleSlug}`,
-        title:     s.title,
+        id: `ac-${s.titleSlug}`,
+        title: s.title,
         titleSlug: s.titleSlug,
-        difficulty: s.difficulty ?? "Unknown",
-        status:    "completed",
+        difficulty: getProblemBySlug(s.titleSlug)?.difficulty ?? s.difficulty ?? "Unknown",
+        status: "completed",
         companies: getCompaniesForSlug(s.titleSlug),
-        topics:    [],
-        url:       `https://leetcode.com/problems/${s.titleSlug}/`,
-        fromAPI:   true,
+        topics: [],
+        url: `https://leetcode.com/problems/${s.titleSlug}/`,
+        fromAPI: true,
       }));
   }, [data]);
 
@@ -91,8 +86,8 @@ export default function Board() {
 
   const colData = {
     completed: filter([...apiCompleted, ...tasks.filter(t => t.status === "completed")]),
-    doing:     filter(tasks.filter(t => t.status === "doing")),
-    todo:      filter(tasks.filter(t => t.status === "todo")),
+    doing: filter(tasks.filter(t => t.status === "doing")),
+    todo: filter(tasks.filter(t => t.status === "todo")),
   };
 
   return (

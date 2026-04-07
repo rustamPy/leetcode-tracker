@@ -1,19 +1,20 @@
 import companyData from "../data/companyData.json";
-import userData    from "../data/userData.json";
+import userData from "../data/userData.json";
+import problemsData from "../data/problemsData.json";
 
 const TASKS_KEY = "lc_tasks_v1";
 
 /* ── Static user data (pre-fetched at build time) ──────────── */
-export const userProfile    = userData.profile;
-export const userSolved     = userData.solved;
-export const userContest    = userData.contest    ?? {};
-export const userBadges     = userData.badges     ?? [];
+export const userProfile = userData.profile;
+export const userSolved = userData.solved;
+export const userContest = userData.contest ?? {};
+export const userBadges = userData.badges ?? [];
 export const userActiveBadge = userData.activeBadge ?? null;
 export const userSubmissions = userData.submissions ?? [];
-export const dataFetchedAt  = userData.fetchedAt;
+export const dataFetchedAt = userData.fetchedAt;
 
 /* ── Company data ──────────────────────────────────────────── */
-export const companies    = companyData.companies;       // sorted string[]
+export const companies = companyData.companies;       // sorted string[]
 export const problemsBySlug = companyData.problems;      // slug → {title,difficulty,topics,url,companies}
 
 export function getCompaniesForSlug(slug) {
@@ -47,6 +48,38 @@ export function searchProblems({ query = "", difficulty = "" } = {}) {
     .slice(0, 50);
 }
 
+/* ── All-problems data (from Leetcode.csv via build script) ── */
+// slug → { id, title, difficulty, topics, premium }
+export const allProblemsBySlug = problemsData;
+
+export function getProblemBySlug(slug) {
+  return allProblemsBySlug[slug] ?? null;
+}
+
+export function searchAllProblems({ query = "", difficulty = "" } = {}) {
+  if (!query && !difficulty) return [];
+  const q = query.trim().toLowerCase();
+  const d = difficulty.toLowerCase();
+  const filtered = Object.entries(allProblemsBySlug)
+    .filter(([, p]) => {
+      const matchQ = !q || p.title.toLowerCase().includes(q);
+      const matchD = !d || p.difficulty.toLowerCase() === d;
+      return matchQ && matchD;
+    })
+    .map(([slug, p]) => ({ ...p, titleSlug: slug }));
+
+  if (!q) return filtered.slice(0, 50);
+
+  return filtered
+    .sort((a, b) => {
+      const at = a.title.toLowerCase();
+      const bt = b.title.toLowerCase();
+      const score = t => t === q ? 0 : t.startsWith(q) ? 1 : 2;
+      return score(at) - score(bt);
+    })
+    .slice(0, 50);
+}
+
 /* ── localStorage tasks ────────────────────────────────────── */
 function loadTasks() {
   try { return JSON.parse(localStorage.getItem(TASKS_KEY) || "[]"); }
@@ -57,8 +90,8 @@ function saveTasks(tasks) {
 }
 
 export const api = {
-  getTasks:   ()             => loadTasks(),
-  createTask: (task)         => { const t = { ...task, id: crypto.randomUUID() }; saveTasks([...loadTasks(), t]); return t; },
-  updateTask: (id, update)   => { const tasks = loadTasks().map(t => t.id === id ? { ...t, ...update } : t); saveTasks(tasks); return tasks.find(t => t.id === id); },
-  deleteTask: (id)           => { saveTasks(loadTasks().filter(t => t.id !== id)); },
+  getTasks: () => loadTasks(),
+  createTask: (task) => { const t = { ...task, id: crypto.randomUUID() }; saveTasks([...loadTasks(), t]); return t; },
+  updateTask: (id, update) => { const tasks = loadTasks().map(t => t.id === id ? { ...t, ...update } : t); saveTasks(tasks); return tasks.find(t => t.id === id); },
+  deleteTask: (id) => { saveTasks(loadTasks().filter(t => t.id !== id)); },
 };

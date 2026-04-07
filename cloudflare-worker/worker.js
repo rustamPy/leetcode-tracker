@@ -1,13 +1,3 @@
-/**
- * Cloudflare Worker — LeetCode GraphQL proxy
- *
- * Deploy:
- *   1. npx wrangler deploy  (or paste into the Cloudflare dashboard)
- *   2. Set VITE_GQL_PROXY=https://<worker-name>.<your-account>.workers.dev
- *      in the GitHub Actions workflow (or repo secret VITE_GQL_PROXY).
- *
- * Allowed origin is restricted to your GitHub Pages URL.
- */
 
 const ALLOWED_ORIGIN = "https://rustampy.github.io";
 const LC_GQL = "https://leetcode.com/graphql";
@@ -16,7 +6,6 @@ export default {
     async fetch(request) {
         const origin = request.headers.get("Origin") ?? "";
 
-        // Handle CORS pre-flight
         if (request.method === "OPTIONS") {
             return new Response(null, {
                 status: 204,
@@ -28,7 +17,6 @@ export default {
             return new Response("Method Not Allowed", { status: 405 });
         }
 
-        // Forward the request to LeetCode GraphQL
         const body = await request.text();
         const upstream = await fetch(LC_GQL, {
             method: "POST",
