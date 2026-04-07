@@ -30,9 +30,6 @@ jobs:
       - name: Fetch LeetCode user data
         run: python3 scripts/fetch_user_data.py
 
-      - name: Build problems data from CSV
-        run: python3 scripts/build_problems_data.py
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20

@@ -1,7 +1,40 @@
 import { useState, useEffect } from "react";
-import { api, companies, allTopics, getProblemsForCompany, searchAllProblems } from "../services/api";
+import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
+
+function ProblemRow({ p, company, onAdd, suggested = false }) {
+  return (
+    <div className={`modal-row${suggested ? " modal-row--suggested" : ""}`}>
+      <div className="modal-row-info">
+        <div className="modal-row-top">
+          <span className="modal-row-title">{p.title}</span>
+          <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>
+            {p.difficulty}
+          </span>
+        </div>
+        {p.companies?.length > 0 && (
+          <div className="modal-row-companies">
+            {p.companies.slice(0, 5).map(c => (
+              <span key={c} className={`company-chip ${c === company ? "company-chip--active" : ""}`}>{c}</span>
+            ))}
+            {p.companies.length > 5 && (
+              <span className="company-chip company-chip--more">+{p.companies.length - 5}</span>
+            )}
+          </div>
+        )}
+        {p.topics?.length > 0 && suggested && (
+          <div className="modal-row-companies">
+            {p.topics.slice(0, 4).map(t => (
+              <span key={t} className="company-chip">{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+      <button className="btn-modal-add" onClick={() => onAdd(p)}>Add</button>
+    </div>
+  );
+}
 
 export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [mode, setMode] = useState("company");
@@ -11,17 +44,19 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [topic, setTopic] = useState("");
   const [status, setStatus] = useState(initialStatus);
   const [results, setResults] = useState([]);
+  const [suggested, setSuggested] = useState([]);
 
   useEffect(() => {
     if (mode === "company") {
-      if (!company) { setResults([]); return; }
+      if (!company) { setResults([]); setSuggested([]); return; }
       let list = getProblemsForCompany(company, { topic });
       if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
       if (query) list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
       setResults(list.slice(0, 60));
+      setSuggested(getSuggestedForCompany(company, { topic, difficulty }));
       return;
     }
-
+    setSuggested([]);
     // Search mode — instant local search over all 3,647 problems
     setResults(searchAllProblems({ query, difficulty, topic }));
   }, [mode, company, difficulty, topic, query]);
@@ -97,26 +132,19 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <p className="modal-hint">No results</p>
           )}
           {results.map(p => (
-            <div key={p.titleSlug} className="modal-row">
-              <div className="modal-row-info">
-                <div className="modal-row-top">
-                  <span className="modal-row-title">{p.title}</span>
-                  <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}> {p.difficulty}</span>
-                </div>
-                {p.companies?.length > 0 && (
-                  <div className="modal-row-companies">
-                    {p.companies.slice(0, 5).map(c => (
-                      <span key={c} className={`company-chip ${c === company ? "company-chip--active" : ""}`}>{c}</span>
-                    ))}
-                    {p.companies.length > 5 && (
-                      <span className="company-chip company-chip--more">+{p.companies.length - 5}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <button className="btn-modal-add" onClick={() => handleAdd(p)}>Add</button>
-            </div>
+            <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} />
           ))}
+
+          {mode === "company" && company && suggested.length > 0 && (
+            <>
+              <div className="modal-section-divider">
+                <span>Suggested by similarity · {suggested.length}</span>
+              </div>
+              {suggested.map(p => (
+                <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested />
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -14,11 +14,30 @@ export const userSubmissions = userData.submissions ?? [];
 export const dataFetchedAt = userData.fetchedAt;
 
 /* ── Company data ──────────────────────────────────────────── */
-export const companies = companyData.companies;       // sorted string[]
-export const problemsBySlug = companyData.problems;      // slug → {title,difficulty,topics,url,companies}
+export const companies = companyData.companies;    // sorted string[]
+export const problemsBySlug = companyData.problems;     // slug → {title,difficulty,topics,url,companies}
+const suggestedByCompany = companyData.suggested ?? {}; // company → slug[]
 
 export function getCompaniesForSlug(slug) {
   return problemsBySlug[slug]?.companies ?? [];
+}
+
+export function getSuggestedForCompany(company, { topic = "", difficulty = "" } = {}) {
+  const slugs = suggestedByCompany[company] ?? [];
+  const d = difficulty.toLowerCase();
+  return slugs
+    .map(slug => {
+      // prefer full data from problemsData, fall back to companyData
+      const p = allProblemsBySlug[slug] ?? problemsBySlug[slug];
+      if (!p) return null;
+      return { ...p, titleSlug: slug };
+    })
+    .filter(p => {
+      if (!p) return false;
+      const matchT = !topic || (p.topics ?? []).includes(topic);
+      const matchD = !d || (p.difficulty ?? "").toLowerCase() === d;
+      return matchT && matchD;
+    });
 }
 
 export function getProblemsForCompany(company, { topic = "" } = {}) {
