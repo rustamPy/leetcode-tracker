@@ -3,11 +3,11 @@
  * caches results in localStorage, supports any username.
  */
 
-const GQL        = import.meta.env.PROD
+const GQL = import.meta.env.PROD
   ? (import.meta.env.VITE_GQL_PROXY ?? "")  // Cloudflare Worker URL set at build time
   : "/lc-graphql";                           // proxied via Vite → leetcode.com/graphql
-const CACHE_KEY  = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
-const CACHE_TTL  = 6 * 60 * 60 * 1000;  // 6 hours
+const CACHE_KEY = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
+const CACHE_TTL = 6 * 60 * 60 * 1000;  // 6 hours
 
 // ── GraphQL query ──────────────────────────────────────────────
 const PROFILE_QUERY = `
@@ -48,9 +48,9 @@ query GetSubs($username: String!, $limit: Int!) {
 // ── Fetch helpers ──────────────────────────────────────────────
 async function gql(query, variables) {
   const res = await fetch(GQL, {
-    method:  "POST",
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -83,7 +83,7 @@ export function getCachedUsernames() {
 
 // ── Normalise raw GQL response ─────────────────────────────────
 function normalise(profileData, subData) {
-  const u  = profileData?.matchedUser ?? null;
+  const u = profileData?.matchedUser ?? null;
   const cr = profileData?.userContestRanking ?? {};
   if (!u) return null;                    // username doesn't exist
 
@@ -91,36 +91,36 @@ function normalise(profileData, subData) {
     (u.submitStats?.acSubmissionNum ?? []).map(s => [s.difficulty, s.count])
   );
   return {
-    username:    u.username,
+    username: u.username,
     profile: {
-      realName:    u.profile?.realName   ?? "",
-      userAvatar:  u.profile?.userAvatar ?? "",
-      ranking:     u.profile?.ranking    ?? 0,
+      realName: u.profile?.realName ?? "",
+      userAvatar: u.profile?.userAvatar ?? "",
+      ranking: u.profile?.ranking ?? 0,
       countryName: u.profile?.countryName ?? "",
-      company:     u.profile?.company    ?? "",
-      school:      u.profile?.school     ?? "",
-      skillTags:   u.profile?.skillTags  ?? [],
-      starRating:  u.profile?.starRating ?? 0,
+      company: u.profile?.company ?? "",
+      school: u.profile?.school ?? "",
+      skillTags: u.profile?.skillTags ?? [],
+      starRating: u.profile?.starRating ?? 0,
     },
     solved: {
-      total:  ac["All"]    ?? 0,
-      easy:   ac["Easy"]   ?? 0,
+      total: ac["All"] ?? 0,
+      easy: ac["Easy"] ?? 0,
       medium: ac["Medium"] ?? 0,
-      hard:   ac["Hard"]   ?? 0,
+      hard: ac["Hard"] ?? 0,
     },
     contest: {
-      attended:       cr.attendedContestsCount ?? 0,
-      rating:         cr.rating               ?? 0,
-      globalRanking:  cr.globalRanking         ?? 0,
-      topPercentage:  cr.topPercentage         ?? 0,
+      attended: cr.attendedContestsCount ?? 0,
+      rating: cr.rating ?? 0,
+      globalRanking: cr.globalRanking ?? 0,
+      topPercentage: cr.topPercentage ?? 0,
     },
-    badges:      u.badges      ?? [],
+    badges: u.badges ?? [],
     activeBadge: u.activeBadge ?? null,
     submissions: (subData?.recentAcSubmissionList ?? []).map(s => ({
-      title:     s.title,
+      title: s.title,
       titleSlug: s.titleSlug,
       timestamp: s.timestamp,
-      lang:      s.lang,
+      lang: s.lang,
     })),
   };
 }
@@ -139,7 +139,7 @@ export async function fetchUserData(username, { force = false } = {}) {
 
   // 2. Fetch from LeetCode GraphQL
   const [profileData, subData] = await Promise.all([
-    gql(PROFILE_QUERY,     { username }),
+    gql(PROFILE_QUERY, { username }),
     gql(SUBMISSIONS_QUERY, { username, limit: 300 }),
   ]);
 
