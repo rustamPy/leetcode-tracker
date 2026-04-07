@@ -21,9 +21,13 @@ export function getCompaniesForSlug(slug) {
   return problemsBySlug[slug]?.companies ?? [];
 }
 
-export function getProblemsForCompany(company) {
+export function getProblemsForCompany(company, { topic = "" } = {}) {
   return Object.entries(problemsBySlug)
-    .filter(([, p]) => p.companies.includes(company))
+    .filter(([, p]) => {
+      const matchC = p.companies.includes(company);
+      const matchT = !topic || (p.topics ?? []).includes(topic);
+      return matchC && matchT;
+    })
     .map(([slug, p]) => ({ ...p, titleSlug: slug }))
     .sort((a, b) => {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
@@ -52,19 +56,25 @@ export function searchProblems({ query = "", difficulty = "" } = {}) {
 // slug → { id, title, difficulty, topics, premium }
 export const allProblemsBySlug = problemsData;
 
+// Sorted list of all unique topics across all problems
+export const allTopics = [...new Set(
+  Object.values(problemsData).flatMap(p => p.topics ?? [])
+)].sort();
+
 export function getProblemBySlug(slug) {
   return allProblemsBySlug[slug] ?? null;
 }
 
-export function searchAllProblems({ query = "", difficulty = "" } = {}) {
-  if (!query && !difficulty) return [];
+export function searchAllProblems({ query = "", difficulty = "", topic = "" } = {}) {
+  if (!query && !difficulty && !topic) return [];
   const q = query.trim().toLowerCase();
   const d = difficulty.toLowerCase();
   const filtered = Object.entries(allProblemsBySlug)
     .filter(([, p]) => {
       const matchQ = !q || p.title.toLowerCase().includes(q);
       const matchD = !d || p.difficulty.toLowerCase() === d;
-      return matchQ && matchD;
+      const matchT = !topic || (p.topics ?? []).includes(topic);
+      return matchQ && matchD && matchT;
     })
     .map(([slug, p]) => ({ ...p, titleSlug: slug }));
 

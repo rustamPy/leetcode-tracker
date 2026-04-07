@@ -7,7 +7,7 @@ const GQL = import.meta.env.PROD
   ? (import.meta.env.VITE_GQL_PROXY ?? "")  // Cloudflare Worker URL set at build time
   : "/lc-graphql";                           // proxied via Vite → leetcode.com/graphql
 const CACHE_KEY = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
-const CACHE_TTL = 6 * 60 * 60 * 1000;  // 6 hours
+const CACHE_TTL = Infinity;          // never expire — use refresh button to force update
 
 // ── GraphQL query ──────────────────────────────────────────────
 const PROFILE_QUERY = `

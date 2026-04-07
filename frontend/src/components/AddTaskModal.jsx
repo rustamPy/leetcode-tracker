@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api, companies, getProblemsForCompany, searchAllProblems } from "../services/api";
+import { api, companies, allTopics, getProblemsForCompany, searchAllProblems } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
@@ -8,13 +8,14 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [company, setCompany] = useState("");
   const [query, setQuery] = useState("");
   const [difficulty, setDifficulty] = useState("");
+  const [topic, setTopic] = useState("");
   const [status, setStatus] = useState(initialStatus);
   const [results, setResults] = useState([]);
 
   useEffect(() => {
     if (mode === "company") {
       if (!company) { setResults([]); return; }
-      let list = getProblemsForCompany(company);
+      let list = getProblemsForCompany(company, { topic });
       if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
       if (query) list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
       setResults(list.slice(0, 60));
@@ -22,8 +23,8 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
     }
 
     // Search mode — instant local search over all 3,647 problems
-    setResults(searchAllProblems({ query, difficulty }));
-  }, [mode, company, difficulty, query]);
+    setResults(searchAllProblems({ query, difficulty, topic }));
+  }, [mode, company, difficulty, topic, query]);
 
   const handleAdd = (p) => {
     onAdd({
@@ -75,6 +76,10 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
           </select>
+          <select className="modal-sel" value={topic} onChange={e => setTopic(e.target.value)}>
+            <option value="">All topics</option>
+            {allTopics.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
           <select className="modal-sel" value={status} onChange={e => setStatus(e.target.value)}>
             <option value="todo">To Do</option>
             <option value="doing">In Progress</option>
@@ -85,10 +90,10 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           {mode === "company" && !company && (
             <p className="modal-hint">Select a company to browse its interview problems</p>
           )}
-          {mode === "search" && !query && !difficulty && (
+          {mode === "search" && !query && !difficulty && !topic && (
             <p className="modal-hint">Type a title or pick a difficulty to search all 3,647 problems</p>
           )}
-          {results.length === 0 && (mode === "search" ? (query || difficulty) : company) && (
+          {results.length === 0 && (mode === "search" ? (query || difficulty || topic) : company) && (
             <p className="modal-hint">No results</p>
           )}
           {results.map(p => (
