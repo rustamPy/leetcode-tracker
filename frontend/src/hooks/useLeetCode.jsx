@@ -21,46 +21,32 @@ const LCContext = createContext(null);
 function buildFallback() {
   const s = fallback.solved ?? {};
   return {
-    username:    fallback.username ?? DEFAULT_USERNAME,
-    profile:     fallback.profile  ?? {},
+    username: fallback.username ?? DEFAULT_USERNAME,
+    profile: fallback.profile ?? {},
     solved: {
-      total:  s.solvedProblem ?? 0,
-      easy:   s.easySolved    ?? 0,
-      medium: s.mediumSolved  ?? 0,
-      hard:   s.hardSolved    ?? 0,
+      total: s.solvedProblem ?? 0,
+      easy: s.easySolved ?? 0,
+      medium: s.mediumSolved ?? 0,
+      hard: s.hardSolved ?? 0,
     },
-    contest:     fallback.contest     ?? {},
-    badges:      fallback.badges      ?? [],
+    contest: fallback.contest ?? {},
+    badges: fallback.badges ?? [],
     activeBadge: fallback.activeBadge ?? null,
     submissions: fallback.submissions ?? [],
   };
 }
 
-// In production (GitHub Pages) there is no proxy — use the pre-built JSON directly.
-const IS_PROD = import.meta.env.PROD;
-
 export function LCProvider({ children }) {
-  const [username,  setUsername]  = useState(() => readStoredUsername());
-  const [data,      setData]      = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
-  const [cachedAt,  setCachedAt]  = useState(null);
+  const [username, setUsername] = useState(() => readStoredUsername());
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [cachedAt, setCachedAt] = useState(null);
   const [fromCache, setFromCache] = useState(false);
 
   const load = useCallback(async (user, force = false) => {
     setLoading(true);
     setError(null);
-
-    // Production (GitHub Pages): there is no server proxy, so live GraphQL
-    // fetches will always fail. Always serve the build-time pre-fetched JSON.
-    if (IS_PROD) {
-      const d = buildFallback();
-      setData(d);
-      setCachedAt(fallback.fetchedAt ? new Date(fallback.fetchedAt).getTime() : Date.now());
-      setFromCache(true);
-      setLoading(false);
-      return;
-    }
 
     try {
       const res = await fetchUserData(user, { force });
@@ -86,8 +72,8 @@ export function LCProvider({ children }) {
     setUsername(newUser);
   }, []);
 
-  const refresh      = useCallback(() => { clearCacheForUser(username); load(username, true); }, [username, load]);
-  const clearCache   = useCallback(() => { clearAllCache(); load(username, true); }, [username, load]);
+  const refresh = useCallback(() => { clearCacheForUser(username); load(username, true); }, [username, load]);
+  const clearCache = useCallback(() => { clearAllCache(); load(username, true); }, [username, load]);
   const clearCookies = useCallback(() => {
     clearAllLCCookies();
   }, []);
