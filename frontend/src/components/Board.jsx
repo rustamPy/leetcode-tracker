@@ -6,7 +6,7 @@ import { api, companies, getCompaniesForSlug, getProblemBySlug } from "../servic
 import { fetchProblem } from "../services/leetcodeAPI";
 import { useLeetCode } from "../hooks/useLeetCode";
 
-const COLUMNS = ["completed", "doing", "todo"];
+const COLUMNS = ["completed", "todo", "doing"];
 const LABELS = { completed: "Completed", doing: "In Progress", todo: "To Do" };
 
 export default function Board() {
