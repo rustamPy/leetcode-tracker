@@ -17,32 +17,33 @@ export default function Profile() {
   }, []);
 
   if (loading) return <div className="profile-card profile-skeleton" />;
-  if (error)   return <div className="profile-card profile-error">Could not load profile — {error}</div>;
+  if (error) return <div className="profile-card profile-error">Could not load profile — {error}</div>;
 
   const total = solved?.solvedProblem ?? 0;
-  const easy  = solved?.easySolved ?? 0;
-  const med   = solved?.mediumSolved ?? 0;
-  const hard  = solved?.hardSolved ?? 0;
-
+  const easy = solved?.easySolved ?? 0;
+  const med = solved?.mediumSolved ?? 0;
+  const hard = solved?.hardSolved ?? 0;
+  console.log(profile);
   const bars = [
-    { label: "Easy",   val: easy, max: 800,  color: DIFF.Easy },
-    { label: "Medium", val: med,  max: 1600, color: DIFF.Medium },
-    { label: "Hard",   val: hard, max: 700,  color: DIFF.Hard },
+    { label: "Easy", val: easy, max: 800, color: DIFF.Easy },
+    { label: "Medium", val: med, max: 1600, color: DIFF.Medium },
+    { label: "Hard", val: hard, max: 700, color: DIFF.Hard },
   ];
 
   return (
     <div className="profile-card">
       <div className="profile-avatar-wrap">
-        {profile?.userAvatar
-          ? <img className="profile-avatar" src={profile.userAvatar} alt="avatar" />
-          : <div className="profile-avatar-placeholder">{(profile?.realName || "R")[0]}</div>
+        
+        {profile?.avatar
+          ? <img className="profile-avatar" src={profile.avatar} alt="avatar" />
+          : <div className="profile-avatar-placeholder">{(profile?.name || "R")[0]}</div>
         }
         <div className="profile-badge">#{profile?.ranking ?? "—"}</div>
       </div>
 
       <div className="profile-body">
         <div className="profile-names">
-          <h1 className="profile-name">{profile?.realName || "thisisrustam"}</h1>
+          <h1 className="profile-name">{profile?.name || "thisisrustam"}</h1>
           <span className="profile-handle">@thisisrustam</span>
         </div>
 

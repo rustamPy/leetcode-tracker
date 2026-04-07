@@ -1,14 +1,29 @@
 import { useState, useEffect, useCallback } from "react";
-import { api } from "../services/api";
+import { api, companies, getProblemsForCompany } from "../services/api";
+
+const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
 export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
+  const [mode,       setMode]       = useState("company"); // "company" | "search"
+  const [company,    setCompany]    = useState("");
   const [query,      setQuery]      = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [status,     setStatus]     = useState(initialStatus);
   const [results,    setResults]    = useState([]);
   const [loading,    setLoading]    = useState(false);
 
-  const search = useCallback(async () => {
+  // Company mode — sync, instant
+  useEffect(() => {
+    if (mode !== "company") return;
+    if (!company) { setResults([]); return; }
+    let list = getProblemsForCompany(company);
+    if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
+    if (query)      list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
+    setResults(list.slice(0, 60));
+  }, [mode, company, difficulty, query]);
+
+  // Search mode — async, debounced
+  const searchAPI = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.getProblems({ limit: 20, difficulty: difficulty || undefined });
@@ -18,7 +33,11 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
     finally   { setLoading(false); }
   }, [query, difficulty]);
 
-  useEffect(() => { const t = setTimeout(search, 350); return () => clearTimeout(t); }, [search]);
+  useEffect(() => {
+    if (mode !== "search") return;
+    const t = setTimeout(searchAPI, 350);
+    return () => clearTimeout(t);
+  }, [mode, searchAPI]);
 
   const handleAdd = (p) => {
     onAdd({
@@ -26,8 +45,9 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
       titleSlug:  p.titleSlug,
       difficulty: p.difficulty,
       status,
-      tags:       p.topicTags?.map(t => t.name) ?? [],
-      url:        `https://leetcode.com/problems/${p.titleSlug}/`,
+      companies:  p.companies ?? (company ? [company] : []),
+      topics:     p.topics ?? p.topicTags?.map(t => t.name) ?? [],
+      url:        p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
     });
     onClose();
   };
@@ -35,24 +55,47 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
         <div className="modal-head">
           <h3>Add Problem</h3>
-          <button className="modal-x" onClick={onClose}>x</button>
+          <button className="modal-x" onClick={onClose}>✕</button>
         </div>
 
+        {/* Mode toggle */}
+        <div className="modal-tabs">
+          <button className={`modal-tab ${mode === "company" ? "active" : ""}`} onClick={() => setMode("company")}>
+            Browse by Company
+          </button>
+          <button className={`modal-tab ${mode === "search" ? "active" : ""}`} onClick={() => setMode("search")}>
+            Search All
+          </button>
+        </div>
+
+        {/* Filters */}
         <div className="modal-filters">
+          {mode === "company" && (
+            <select
+              className="modal-sel modal-sel--company"
+              value={company}
+              onChange={e => setCompany(e.target.value)}
+            >
+              <option value="">Select company...</option>
+              {companies.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
           <input
             autoFocus
             className="modal-input"
-            placeholder="Search by title..."
+            placeholder={mode === "company" ? "Filter by title..." : "Search problems..."}
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
           <select className="modal-sel" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
             <option value="">All difficulties</option>
-            <option value="EASY">Easy</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HARD">Hard</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
           </select>
           <select className="modal-sel" value={status} onChange={e => setStatus(e.target.value)}>
             <option value="todo">To Do</option>
@@ -60,16 +103,34 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           </select>
         </div>
 
+        {/* Results */}
         <div className="modal-list">
+          {mode === "company" && !company && (
+            <p className="modal-hint">Select a company to browse its problems</p>
+          )}
           {loading && <p className="modal-hint">Searching...</p>}
-          {!loading && results.length === 0 && <p className="modal-hint">No results</p>}
+          {!loading && (mode !== "company" || company) && results.length === 0 && (
+            <p className="modal-hint">No results</p>
+          )}
           {results.map(p => (
             <div key={p.titleSlug} className="modal-row">
-              <div>
-                <p className="modal-row-title">{p.title}</p>
-                <span className="modal-row-diff" style={{
-                  color: p.difficulty === "Easy" ? "#059669" : p.difficulty === "Medium" ? "#d97706" : "#dc2626"
-                }}>{p.difficulty}</span>
+              <div className="modal-row-info">
+                <div className="modal-row-top">
+                  <span className="modal-row-title">{p.title}</span>
+                  <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>
+                    {p.difficulty}
+                  </span>
+                </div>
+                {p.companies?.length > 0 && (
+                  <div className="modal-row-companies">
+                    {p.companies.slice(0, 5).map(c => (
+                      <span key={c} className={`company-chip ${c === company ? "company-chip--active" : ""}`}>{c}</span>
+                    ))}
+                    {p.companies.length > 5 && (
+                      <span className="company-chip company-chip--more">+{p.companies.length - 5}</span>
+                    )}
+                  </div>
+                )}
               </div>
               <button className="btn-modal-add" onClick={() => handleAdd(p)}>Add</button>
             </div>
