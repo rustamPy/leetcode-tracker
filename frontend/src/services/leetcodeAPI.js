@@ -3,7 +3,9 @@
  * caches results in localStorage, supports any username.
  */
 
-const GQL        = "/lc-graphql";        // proxied via Vite → leetcode.com/graphql
+const GQL        = import.meta.env.PROD
+  ? (import.meta.env.VITE_GQL_PROXY ?? "")  // Cloudflare Worker URL set at build time
+  : "/lc-graphql";                           // proxied via Vite → leetcode.com/graphql
 const CACHE_KEY  = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
 const CACHE_TTL  = 6 * 60 * 60 * 1000;  // 6 hours
 
@@ -165,8 +167,13 @@ export async function validateUsername(username) {
     if (u?.username) return { valid: true, avatar: u.profile?.userAvatar ?? null };
     return { valid: false, error: "Username not found on LeetCode" };
   } catch (e) {
-    // CORS / network error — can't validate from browser, assume valid
-    if (e.message.includes("Failed to fetch") || e.message.includes("NetworkError")) {
+    // Network / proxy error — can't validate from browser, assume valid
+    if (
+      e.message.includes("Failed to fetch") ||
+      e.message.includes("NetworkError") ||
+      e.message.includes("HTTP 4") ||
+      e.message.includes("HTTP 5")
+    ) {
       return { valid: true, avatar: null, warning: "Could not verify (network)" };
     }
     return { valid: false, error: e.message };

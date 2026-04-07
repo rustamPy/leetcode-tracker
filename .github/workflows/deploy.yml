@@ -45,6 +45,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_GQL_PROXY: ${{ secrets.VITE_GQL_PROXY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
