@@ -101,9 +101,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
               <div className="modal-row-info">
                 <div className="modal-row-top">
                   <span className="modal-row-title">{p.title}</span>
-                  <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>
-                    {p.difficulty}
-                  </span>
+                  <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}> {p.difficulty}</span>
                 </div>
                 {p.companies?.length > 0 && (
                   <div className="modal-row-companies">
