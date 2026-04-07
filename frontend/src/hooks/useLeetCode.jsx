@@ -36,6 +36,9 @@ function buildFallback() {
   };
 }
 
+// In production (GitHub Pages) there is no proxy — use the pre-built JSON directly.
+const IS_PROD = import.meta.env.PROD;
+
 export function LCProvider({ children }) {
   const [username,  setUsername]  = useState(() => readStoredUsername());
   const [data,      setData]      = useState(null);
@@ -47,6 +50,18 @@ export function LCProvider({ children }) {
   const load = useCallback(async (user, force = false) => {
     setLoading(true);
     setError(null);
+
+    // Production: serve the build-time baked data for the default user; live
+    // fetches cannot work on static hosting (no proxy for CORS or API routes).
+    if (IS_PROD && user.toLowerCase() === DEFAULT_USERNAME.toLowerCase()) {
+      const d = buildFallback();
+      setData(d);
+      setCachedAt(fallback.fetchedAt ? new Date(fallback.fetchedAt).getTime() : Date.now());
+      setFromCache(true);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetchUserData(user, { force });
       setData(res.data);

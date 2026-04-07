@@ -8,6 +8,11 @@ import { useLeetCode } from "../hooks/useLeetCode";
 const COLUMNS = ["completed", "doing", "todo"];
 const LABELS  = { completed: "Completed", doing: "In Progress", todo: "To Do" };
 
+// In production (GitHub Pages) there is no /api proxy — call the public API directly.
+const PROBLEM_API = import.meta.env.PROD
+  ? "https://alfa-leetcode-api.onrender.com/select"
+  : "/api/problem";
+
 export default function Board() {
   const { data } = useLeetCode();
   const [tasks,         setTasks]         = useState(() => api.getTasks());
@@ -29,7 +34,7 @@ export default function Board() {
     setDrawerLoading(true);
     setDrawerProblem(null);
     try {
-      const res  = await fetch(`/api/problem?titleSlug=${encodeURIComponent(task.titleSlug)}`);
+      const res  = await fetch(`${PROBLEM_API}?titleSlug=${encodeURIComponent(task.titleSlug)}`);
       const json = await res.json();
       setDrawerProblem({
         title:      json.questionTitle  ?? task.title,

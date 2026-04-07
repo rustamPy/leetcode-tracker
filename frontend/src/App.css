@@ -15,8 +15,7 @@
   --easy: #059669;
   --medium: #d97706;
   --hard: #dc2626;
-  --r: 8px;
-  --shadow: 0 2px 16px rgba(30, 64, 175, 0.10);
+  --r: 8px;  --shadow: 0 2px 16px rgba(30, 64, 175, 0.10);
   --font: 'IBM Plex Sans', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
