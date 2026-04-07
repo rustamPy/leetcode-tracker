@@ -7,7 +7,7 @@ const COL = {
   todo: { label: "To Do", marker: "03", color: "#1e40af" },
 };
 
-export default function Column({ status, tasks, columns, onMove, onDelete, onAdd, onOpen }) {
+export default function Column({ status, tasks, columns, onMove, onDelete, onAdd, onOpen, onRefresh }) {
   const { label, marker, color } = COL[status];
   const [search, setSearch] = useState("");
 
@@ -22,6 +22,11 @@ export default function Column({ status, tasks, columns, onMove, onDelete, onAdd
         <span className="col-marker">{marker}</span>
         <span className="col-title">{label}</span>
         <span className="col-count">{tasks.length}</span>
+        {status === "completed" && onRefresh && (
+          <button className="col-refresh" onClick={onRefresh} title="Show 20 different random problems">
+            ↺
+          </button>
+        )}
       </div>
 
       <div className="col-filters">

@@ -13,6 +13,7 @@ export default function Board() {
   const [tasks,         setTasks]         = useState(() => api.getTasks());
   const [addingStatus,  setAddingStatus]  = useState(null);
   const [filterCompany, setFilterCompany] = useState("");
+  const [completedSeed, setCompletedSeed] = useState(0);
 
   // Drawer state
   const [drawerOpen,    setDrawerOpen]    = useState(false);
@@ -53,9 +54,10 @@ export default function Board() {
     }
   }, []);
 
-  // Build completed cards from live hook data
-  const apiCompleted = useMemo(() => {
+  // Build completed cards from live hook data — random sample of 20
+  const allApiCompleted = useMemo(() => {
     const subs = data?.submissions ?? [];
+    console.log("Fetched submissions from LeetCode API:", subs); // Debug log
     const seen = new Set();
     return subs
       .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })
@@ -63,7 +65,7 @@ export default function Board() {
         id:        `ac-${s.titleSlug}`,
         title:     s.title,
         titleSlug: s.titleSlug,
-        difficulty: "Unknown",
+        difficulty: s.difficulty ?? "Unknown",
         status:    "completed",
         companies: getCompaniesForSlug(s.titleSlug),
         topics:    [],
@@ -71,6 +73,14 @@ export default function Board() {
         fromAPI:   true,
       }));
   }, [data]);
+
+  // Re-sample 20 random whenever completedSeed changes
+  const apiCompleted = useMemo(() => {
+    if (allApiCompleted.length <= 20) return allApiCompleted;
+    const shuffled = [...allApiCompleted].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 20);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allApiCompleted, completedSeed]);
 
   const filter = (list) =>
     filterCompany ? list.filter(t => t.companies?.includes(filterCompany)) : list;
@@ -106,6 +116,7 @@ export default function Board() {
             onDelete={(id) => { if (!id.startsWith("ac-")) handleDelete(id); }}
             onAdd={() => setAddingStatus(col === "completed" ? "todo" : col)}
             onOpen={handleOpenProblem}
+            onRefresh={col === "completed" ? () => setCompletedSeed(s => s + 1) : undefined}
           />
         ))}
       </div>

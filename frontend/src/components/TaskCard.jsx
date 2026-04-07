@@ -1,32 +1,34 @@
-const DIFF_BORDER = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
-const DIFF_BG     = { Easy: "#ecfdf5", Medium: "#fffbeb", Hard: "#fff1f2" };
+/* Better dimmed palettes */
+const DIFF_BORDER = { Easy: "#16a34a", Medium: "#b45309", Hard: "#e11d48" };
+const DIFF_BG     = { Easy: "#f0fdf4", Medium: "#fffbeb", Hard: "#fff1f2" };
+const DIFF_BADGE  = { Easy: "#dcfce7", Medium: "#fef3c7", Hard: "#ffe4e6" };
 
 export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
-  const border = DIFF_BORDER[task.difficulty] ?? "#94a3b8";
-  const bg     = DIFF_BG[task.difficulty]     ?? "#f8fafc";
+  const isAPI  = !!task.fromAPI;
+  const known  = task.difficulty && task.difficulty !== "Unknown";
+  const border = known ? (DIFF_BORDER[task.difficulty] ?? "#64748b") : "#64748b";
+  const bg     = known ? (DIFF_BG[task.difficulty]     ?? "#f8fafc") : "#f8fafc";
+  const badge  = known ? (DIFF_BADGE[task.difficulty]  ?? "#e2e8f0") : null;
 
   const prev = columns[columns.indexOf(task.status) - 1];
   const next = columns[columns.indexOf(task.status) + 1];
-
   const LABELS = { completed: "Done", doing: "Doing", todo: "To Do" };
 
   return (
-    <div
-      className="task-card"
-      style={{ borderLeftColor: border, background: bg }}
-    >
+    <div className="task-card" style={{ borderLeftColor: border, background: bg }}>
+
       <div className="task-card-head">
-        <span className="task-diff-badge" style={{ background: `${border}18`, color: border }}>
-          {task.difficulty ?? "–"}
-        </span>
-        <button className="task-del" title="Delete" onClick={() => onDelete(task.id)}>✕</button>
+        {badge && (
+          <span className="task-diff-badge" style={{ background: badge, color: border }}>
+            {task.difficulty}
+          </span>
+        )}
+        {!isAPI && (
+          <button className="task-del" title="Remove" onClick={() => onDelete(task.id)}>✕</button>
+        )}
       </div>
 
-      <button
-        className="task-title task-title--btn"
-        onClick={() => onOpen?.(task)}
-        title="View description"
-      >
+      <button className="task-title" onClick={() => onOpen?.(task)} title="View description">
         {task.title}
       </button>
 
@@ -51,19 +53,21 @@ export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
         </div>
       )}
 
-      {/* Move buttons */}
-      <div className="task-actions">
-        {prev && (
-          <button className="btn-move btn-move--prev" onClick={() => onMove(task.id, prev)} title={`Move to ${LABELS[prev]}`}>
-            Back
-          </button>
-        )}
-        {next && (
-          <button className="btn-move btn-move--next" onClick={() => onMove(task.id, next)} title={`Move to ${LABELS[next]}`}>
-            {LABELS[next]}
-          </button>
-        )}
-      </div>
+      {/* Move buttons — hidden for API-sourced cards */}
+      {!isAPI && (prev || next) && (
+        <div className="task-actions">
+          {prev && (
+            <button className="btn-move btn-move--prev" onClick={() => onMove(task.id, prev)}>
+              ← Back
+            </button>
+          )}
+          {next && (
+            <button className="btn-move btn-move--next" onClick={() => onMove(task.id, next)}>
+              {LABELS[next]} →
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
