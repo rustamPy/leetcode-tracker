@@ -13,7 +13,8 @@ A personal Kanban board for tracking LeetCode progress — browse problems by co
 - **Company browser** — filter problems by company from a curated dataset
 - **Problem search** — instant search across all 3,600+ problems (local, no network call)
 - **Problem drawer** — description, topic tags, and hints fetched via LeetCode GraphQL
-- **Username switching** — change the tracked account at runtime; data is cached 6 hours
+- **Username switching** — change the tracked account at runtime; data is cached indefinitely (localStorage)
+- **ML problem suggestions** — "Suggested by similarity" section in the company browser, powered by a content-based model trained on topics, difficulty, and problem descriptions
 
 ---
 
@@ -45,10 +46,14 @@ scripts/    Build-time data scripts (run by GitHub Actions)
 ### 1. Build static data files
 
 ```bash
-python3 scripts/fetch_user_data.py     # fetches your LeetCode profile into frontend/src/data/userData.json
-python3 scripts/build_company_data.py  # builds company-tagged problem list → frontend/src/data/companyData.json
-python3 scripts/build_problems_data.py # converts Leetcode.csv → frontend/src/data/problemsData.json
+# Required once (or whenever you want to refresh)
+python3 scripts/fetch_user_data.py      # LeetCode profile → frontend/src/data/userData.json
+python3 scripts/build_company_data.py   # company-tagged problems → frontend/src/data/companyData.json
+python3 scripts/build_problems_data.py  # Leetcode.csv → frontend/src/data/problemsData.json
+python3 scripts/suggest_company_problems.py  # ML suggestions → appended to companyData.json
 ```
+
+The last three scripts produce static JSON that is committed to the repo and bundled into the app at build time. Only `fetch_user_data.py` runs in CI (to refresh live stats on every deploy).
 
 To track your own account, change `USERNAME` in `scripts/fetch_user_data.py` and `backend/main.py` before running.
 
@@ -103,9 +108,10 @@ In your repo: **Settings → Secrets and variables → Actions → New repositor
 
 GitHub Actions will:
 1. Fetch your LeetCode profile (`scripts/fetch_user_data.py`)
-2. Build company + problems JSON (`scripts/build_company_data.py`, `scripts/build_problems_data.py`)
-3. Build the Vite app (with `VITE_GQL_PROXY` baked in)
-4. Deploy to GitHub Pages
+2. Build the Vite app (with `VITE_GQL_PROXY` baked in)
+3. Deploy to GitHub Pages
+
+The company data, problem list, and ML suggestions are **pre-built locally and committed** — they don't re-run in CI.
 
 The site auto-rebuilds daily at 06:00 UTC to refresh your stats.
 
@@ -118,6 +124,31 @@ The site auto-rebuilds daily at 06:00 UTC to refresh your stats.
 3. Commit and push — the Actions build will regenerate `userData.json`
 
 Users can also switch accounts at runtime via the **account button** in the profile card. The new username is persisted in `localStorage` and a cookie.
+
+---
+
+## ML similarity model
+
+When you browse a company's problems, a **"Suggested by similarity"** section appears below the known problems. These are ranked by cosine similarity to the centroid of that company's problem set.
+
+### Features
+
+| Feature | Weight | Details |
+|---------|--------|---------|
+| Topic tags | ×3 | Multi-hot encoded across 72 unique topics |
+| Difficulty | ×1 | One-hot (Easy / Medium / Hard) |
+| Problem description | ×2 | TF-IDF (3,000 terms, sublinear TF, L2-normalised) |
+
+All features are stacked into a single sparse matrix and similarity is computed via cosine similarity against each company's centroid.
+
+### Rebuilding suggestions
+
+```bash
+# First run: fetches ~3,600 descriptions from LeetCode GraphQL (takes ~10 min)
+# Subsequent runs: uses local cache at scripts/.desc_cache.json (fast)
+python3 scripts/suggest_company_problems.py
+git add frontend/src/data/companyData.json && git commit -m "refresh ML suggestions"
+```
 
 ---
 

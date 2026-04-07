@@ -32,7 +32,7 @@ COMPANY_FILE = BASE / "frontend/src/data/companyData.json"
 PROBLEMS_FILE = BASE / "frontend/src/data/problemsData.json"
 DESC_CACHE = Path(__file__).parent / ".desc_cache.json"
 
-N_SUGGEST = 50
+N_SUGGEST = 100
 GQL_URL = "https://leetcode.com/graphql"
 HEADERS = {
     "Content-Type": "application/json",
