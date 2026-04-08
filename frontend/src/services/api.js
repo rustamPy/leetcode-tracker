@@ -123,7 +123,8 @@ export const api = {
   createTask: (task) => {
     const existing = loadTasks();
     if (task.titleSlug && existing.some(t => t.titleSlug === task.titleSlug)) return null;
-    const t = { ...task, id: (crypto.randomUUID ?? (() => `${Date.now()}-${Math.random().toString(36).slice(2)}`))() };
+    const uid = crypto.randomUUID ? crypto.randomUUID.bind(crypto) : () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const t = { ...task, id: uid() };
     saveTasks([...existing, t]);
     return t;
   },
