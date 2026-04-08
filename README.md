@@ -158,3 +158,8 @@ Problem dataset sourced from the CSV compiled by **Ashutosh Papnoi**:
 [Latest Complete LeetCode Problems Dataset 2025](https://www.kaggle.com/datasets/ashutoshpapnoi/latest-complete-leetcode-problems-dataset-2025) — thank you for keeping it up to date!
 
 Company-wise problem lists sourced from the [liquidslr/interview-company-wise-problems](https://github.com/liquidslr/interview-company-wise-problems) repository.
+
+The repository provided by Gaurav Kumar and Snehasish Roy contains a comprehensive mapping of LeetCode problems to companies, which is invaluable for the company browser feature. The data is accessed via their GitHub API and raw content URLs, as shown below:
+
+1. https://api.github.com/repos/liquidslr/interview-company-wise-problems/contents
+2. https://api.github.com/repos/snehasishroy/leetcode-companywise-interview-questions/contents

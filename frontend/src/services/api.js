@@ -120,7 +120,13 @@ function saveTasks(tasks) {
 
 export const api = {
   getTasks: () => loadTasks(),
-  createTask: (task) => { const t = { ...task, id: crypto.randomUUID() }; saveTasks([...loadTasks(), t]); return t; },
+  createTask: (task) => {
+    const existing = loadTasks();
+    if (task.titleSlug && existing.some(t => t.titleSlug === task.titleSlug)) return null;
+    const t = { ...task, id: (crypto.randomUUID ?? (() => `${Date.now()}-${Math.random().toString(36).slice(2)}`))() };
+    saveTasks([...existing, t]);
+    return t;
+  },
   updateTask: (id, update) => { const tasks = loadTasks().map(t => t.id === id ? { ...t, ...update } : t); saveTasks(tasks); return tasks.find(t => t.id === id); },
   deleteTask: (id) => { saveTasks(loadTasks().filter(t => t.id !== id)); },
 };

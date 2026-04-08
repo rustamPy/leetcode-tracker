@@ -10,3 +10,4 @@ scripts/.desc_cache.json
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+__pycache__

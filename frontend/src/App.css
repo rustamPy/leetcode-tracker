@@ -715,6 +715,13 @@ body {
   letter-spacing: 0.02em;
 }
 
+.task-premium {
+  font-size: 0.78rem;
+  color: #f59e0b;
+  line-height: 1;
+  title: "Premium";
+}
+
 .task-del {
   margin-left: auto;
   background: none;

@@ -23,6 +23,9 @@ export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
             {task.difficulty}
           </span>
         )}
+        {task.premium && (
+          <span className="task-premium" title="Premium problem">★</span>
+        )}
         {!isAPI && (
           <button className="task-del" title="Remove" onClick={() => onDelete(task.id)}>✕</button>
         )}

@@ -23,7 +23,7 @@ export default function Board() {
 
   const handleMove = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
   const handleDelete = (id) => { api.deleteTask(id); setTasks(api.getTasks()); };
-  const handleAdd = (task) => { api.createTask(task); setTasks(api.getTasks()); };
+  const handleAdd = (task) => { const result = api.createTask(task); setTasks(api.getTasks()); return result; };
 
   const handleOpenProblem = useCallback(async (task) => {
     setDrawerOpen(true);
@@ -65,6 +65,7 @@ export default function Board() {
         title: s.title,
         titleSlug: s.titleSlug,
         difficulty: getProblemBySlug(s.titleSlug)?.difficulty ?? s.difficulty ?? "Unknown",
+        premium: getProblemBySlug(s.titleSlug)?.premium ?? false,
         status: "completed",
         companies: getCompaniesForSlug(s.titleSlug),
         topics: [],

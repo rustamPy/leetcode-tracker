@@ -3,6 +3,7 @@
  * caches results in localStorage, supports any username.
  */
 
+
 const GQL = import.meta.env.PROD
   ? (import.meta.env.VITE_GQL_PROXY ?? "")  // Cloudflare Worker URL set at build time
   : "/lc-graphql";                           // proxied via Vite → leetcode.com/graphql

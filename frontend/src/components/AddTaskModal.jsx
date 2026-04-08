@@ -60,15 +60,20 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   }, [mode, company, difficulty, topic, query]);
 
   const handleAdd = (p) => {
-    onAdd({
+    const result = onAdd({
       title: p.title,
       titleSlug: p.titleSlug,
       difficulty: p.difficulty,
+      premium: p.premium ?? false,
       status,
       companies: p.companies ?? (company ? [company] : []),
       topics: p.topics ?? [],
       url: p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
     });
+    if (result === null) {
+      alert(`"${p.title}" is already on your board.`);
+      return;
+    }
     onClose();
   };
 
