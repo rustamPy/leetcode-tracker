@@ -13,7 +13,15 @@ export default function Board() {
   const { data } = useLeetCode();
   const [tasks, setTasks] = useState(() => api.getTasks());
   const [addingStatus, setAddingStatus] = useState(null);
-  const [filterCompany, setFilterCompany] = useState("");
+  const [filterCompany, setFilterCompany] = useState(
+    () => localStorage.getItem("lc_filter_company") ?? ""
+  );
+
+  const applyCompanyFilter = (val) => {
+    setFilterCompany(val);
+    if (val) localStorage.setItem("lc_filter_company", val);
+    else localStorage.removeItem("lc_filter_company");
+  };
   const [completedSeed, setCompletedSeed] = useState(0);
 
   // Drawer state
@@ -95,12 +103,12 @@ export default function Board() {
     <div className="board-wrap">
       <div className="company-filter-bar">
         <span className="company-filter-label">Company</span>
-        <select className="company-filter-sel" value={filterCompany} onChange={e => setFilterCompany(e.target.value)}>
+        <select className="company-filter-sel" value={filterCompany} onChange={e => applyCompanyFilter(e.target.value)}>
           <option value="">All companies</option>
           {companies.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         {filterCompany && (
-          <button className="company-filter-clear" onClick={() => setFilterCompany("")}>Clear</button>
+          <button className="company-filter-clear" onClick={() => applyCompanyFilter("")}>Clear</button>
         )}
       </div>
 
