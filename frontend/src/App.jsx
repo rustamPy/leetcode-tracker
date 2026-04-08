@@ -1,5 +1,6 @@
 import { LCProvider, useLeetCode } from "./hooks/useLeetCode";
 import Profile from "./components/Profile";
+import StatsStrip from "./components/StatsStrip";
 import Board from "./components/Board";
 import "./App.css";
 
@@ -23,6 +24,7 @@ function AppInner() {
 
       <main className="main">
         <Profile />
+        <StatsStrip />
         <section className="board-section">
           <div className="section-label">BOARD</div>
           <Board />
