@@ -49,7 +49,7 @@ jobs:
         working-directory: frontend
 
       - name: Run tests
-        run: npx vitest run --reporter=default --reporter=html
+        run: npx vitest run --reporter=default --reporter=junit --outputFile=reports/results.xml
         working-directory: frontend
 
       - name: Upload test results
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
-          path: frontend/html/
+          path: frontend/reports/results.xml
           retention-days: 30
 
   menubar:
