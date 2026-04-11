@@ -39,16 +39,15 @@ jobs:
       - name: Build arm64 (Apple Silicon)
         working-directory: menubar-app
         env:
-          # electron-builder reads this to skip code signing on CI
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npx electron-builder --mac --arm64
+        run: npx electron-builder --mac --arm64 --publish never
 
       # ── 6. Build x64 DMG + zip (Intel) ────────────────────────────────────
       - name: Build x64 (Intel)
         working-directory: menubar-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npx electron-builder --mac --x64
+        run: npx electron-builder --mac --x64 --publish never
 
       # ── 7. Extract version from tag ────────────────────────────────────────
       - name: Get version
@@ -58,6 +57,8 @@ jobs:
       # ── 8. Create GitHub release and upload artifacts ──────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: "LeetCode Tracker ${{ steps.version.outputs.VERSION }}"
           body: |
