@@ -1,6 +1,6 @@
 {
   "name": "leetcode-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LeetCode Tracker — macOS menu bar app",
   "author": "Rustam Karimov",
   "main": "main.js",
@@ -10,7 +10,7 @@
     "build:icon": "node scripts/create-icns.js",
     "build": "npm run setup && npm run build:icon && electron-builder --mac --dir",
     "dist:arm64": "npm run setup && npm run build:icon && electron-builder --mac --arm64",
-    "dist:x64":   "npm run setup && npm run build:icon && electron-builder --mac --x64",
+    "dist:x64": "npm run setup && npm run build:icon && electron-builder --mac --x64",
     "dist": "npm run setup && npm run build:icon && electron-builder --mac"
   },
   "devDependencies": {
@@ -24,8 +24,18 @@
     "copyright": "Copyright © 2026 Rustam Karimov",
     "mac": {
       "target": [
-        { "target": "dmg",  "arch": ["arm64"] },
-        { "target": "zip",  "arch": ["arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.developer-tools",
@@ -39,10 +49,21 @@
       "title": "LeetCode Tracker",
       "background": null,
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ],
-      "window": { "width": 540, "height": 380 }
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
     "files": [
       "main.js",
@@ -52,7 +73,10 @@
       "data/**"
     ],
     "extraResources": [
-      { "from": "data/", "to": "data/" }
+      {
+        "from": "data/",
+        "to": "data/"
+      }
     ],
     "publish": {
       "provider": "github",
