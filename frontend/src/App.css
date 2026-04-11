@@ -1471,6 +1471,48 @@ body {
   flex-shrink: 0;
 }
 
+/* Solved row — muted to de-emphasise already-done problems */
+.modal-row--solved {
+  opacity: 0.55;
+}
+.modal-row--solved:hover {
+  opacity: 0.8;
+}
+
+.solved-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.12);
+  border: 1px solid rgba(5, 150, 105, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.premium-badge {
+  font-size: 0.72rem;
+  color: #d97706;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.modal-hide-solved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+.modal-hide-solved input[type="checkbox"] {
+  accent-color: var(--blue);
+  cursor: pointer;
+}
+
 .modal-hint {
   text-align: center;
   color: var(--muted);

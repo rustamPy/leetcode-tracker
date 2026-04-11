@@ -164,7 +164,6 @@
         }
 
         .action-btn:hover {
-            background: var(--surface2);
             color: var(--text);
         }
 
@@ -173,9 +172,6 @@
             cursor: default;
         }
 
-        .action-btn.spinning {
-            animation: spin 0.8s linear infinite;
-        }
 
         @keyframes spin {
             to {
@@ -758,9 +754,9 @@
 
         <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
         <nav class="tabs">
-            <button class="tab active" data-tab="daily">📅 Daily</button>
-            <button class="tab" data-tab="company">🏢 Company</button>
-            <button class="tab" data-tab="recent">⏱ Recent</button>
+            <button class="tab active" data-tab="daily">Daily</button>
+            <button class="tab" data-tab="company">Company</button>
+            <button class="tab" data-tab="recent">Recent</button>
         </nav>
 
         <!-- ── Tab panels ─────────────────────────────────────────────────────── -->
@@ -1022,12 +1018,12 @@
 
             const parts = [];
             if (real.length) {
-                parts.push(`<div class="section-header">🏢 Real Company Questions <span class="count-badge">${real.length}</span></div>`);
+                parts.push(`<div class="section-header">User Defined Company Questions <span class="count-badge">${real.length}</span></div>`);
                 parts.push(renderProbs(real));
             }
             if (suggested.length) {
                 if (real.length) parts.push('<div class="section-divider"></div>');
-                parts.push(`<div class="section-header">🤖 AI Suggested <span class="count-badge">${suggested.length}</span></div>`);
+                parts.push(`<div class="section-header">✦ AI Suggested <span class="count-badge">${suggested.length}</span></div>`);
                 parts.push(renderProbs(suggested));
             }
             list.innerHTML = parts.join('');

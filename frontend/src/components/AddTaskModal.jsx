@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems } from "../services/api";
+import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems, solvedSlugs } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
 function ProblemRow({ p, company, onAdd, suggested = false }) {
+  const solved = solvedSlugs.has(p.titleSlug);
   return (
-    <div className={`modal-row${suggested ? " modal-row--suggested" : ""}`}>
+    <div className={`modal-row${suggested ? " modal-row--suggested" : ""}${solved ? " modal-row--solved" : ""}`}>
       <div className="modal-row-info">
         <div className="modal-row-top">
           <span className="modal-row-title">{p.title}</span>
           <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}> {p.difficulty}</span>
+          {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription">★</span>}
+          {solved && <span className="solved-badge" title="You&apos;ve solved this problem">✓ Done</span>}
         </div>
         {p.companies?.length > 0 && (
           <div className="modal-row-companies">
@@ -43,6 +46,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [status, setStatus] = useState(initialStatus);
   const [results, setResults] = useState([]);
   const [suggested, setSuggested] = useState([]);
+  const [hideSolved, setHideSolved] = useState(false);
 
   useEffect(() => {
     if (mode === "company") {
@@ -58,6 +62,9 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
     // Search mode — instant local search over all 3,647 problems
     setResults(searchAllProblems({ query, difficulty, topic }));
   }, [mode, company, difficulty, topic, query]);
+
+  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : results;
+  const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : suggested;
 
   const handleAdd = (p) => {
     const result = onAdd({
@@ -134,16 +141,16 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           {results.length === 0 && (mode === "search" ? (query || difficulty || topic) : company) && (
             <p className="modal-hint">No results</p>
           )}
-          {results.map(p => (
+          {visibleResults.map(p => (
             <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} />
           ))}
 
-          {mode === "company" && company && suggested.length > 0 && (
+          {mode === "company" && company && visibleSuggested.length > 0 && (
             <>
               <div className="modal-section-divider">
-                <span>Suggested by similarity · {suggested.length}</span>
+                <span>Suggested by similarity · {visibleSuggested.length}</span>
               </div>
-              {suggested.map(p => (
+              {visibleSuggested.map(p => (
                 <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested />
               ))}
             </>

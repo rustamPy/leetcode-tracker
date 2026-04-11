@@ -76,6 +76,14 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+    // ── Dev: auto-reload when renderer/index.html is saved ─────────────────
+    if (process.env.NODE_ENV === 'development') {
+        const fs = require('fs');
+        fs.watch(path.join(__dirname, 'renderer', 'index.html'), () => {
+            win.webContents.reloadIgnoringCache();
+        });
+    }
+
     // Auto-hide when the popup loses focus
     win.on('blur', () => {
         if (!win.webContents.isDevToolsOpened()) win.hide();
@@ -139,16 +147,15 @@ ipcMain.handle('get-company-problems', (_, company) => {
     const problems = data.problems ?? {};
     const suggestedMap = data.suggested ?? {};
 
-    // Real questions: problems that list this company in their companies array
     const real = Object.entries(problems)
         .filter(([, p]) => Array.isArray(p.companies) && p.companies.includes(company))
         .map(([slug, p]) => ({ ...p, titleSlug: slug }));
     const realSlugs = new Set(real.map(p => p.titleSlug));
 
-    // AI-suggested: ML model output, excluding real ones, up to 150
+    // AI-suggested: ML model output, excluding real ones, up to 200
     const suggested = (suggestedMap[company] ?? [])
         .filter(slug => !realSlugs.has(slug))
-        .slice(0, 150)
+        .slice(0, 200)
         .map(slug => ({ ...problems[slug], titleSlug: slug }))
         .filter(p => p && p.title);
 

@@ -12,6 +12,7 @@ export const userBadges = userData.badges ?? [];
 export const userActiveBadge = userData.activeBadge ?? null;
 export const userSubmissions = userData.submissions ?? [];
 export const dataFetchedAt = userData.fetchedAt;
+export const solvedSlugs = new Set(userSubmissions.map(s => s.titleSlug));
 
 /* ── Company data ──────────────────────────────────────────── */
 export const companies = companyData.companies;    // sorted string[]
@@ -47,7 +48,11 @@ export function getProblemsForCompany(company, { topic = "" } = {}) {
       const matchT = !topic || (p.topics ?? []).includes(topic);
       return matchC && matchT;
     })
-    .map(([slug, p]) => ({ ...p, titleSlug: slug }))
+    .map(([slug, p]) => ({
+      ...p,
+      titleSlug: slug,
+      premium: allProblemsBySlug[slug]?.premium ?? false,
+    }))
     .sort((a, b) => {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
       return (order[a.difficulty] ?? 3) - (order[b.difficulty] ?? 3);
