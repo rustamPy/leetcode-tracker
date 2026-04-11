@@ -16,13 +16,13 @@
 
 ## The Origin Story — or: How Desperation Becomes Software
 
-It was a perfectly normal evening. I was staring at a LeetCode problem, a half-eaten bag of chips beside me, two cold coffees on the desk, and a growing sense that I had solved this exact tree problem before — somewhere, at some point, in a previous life.
+It was a perfectly normal evening. I was staring at a LeetCode problem, a half-eaten bag of chips beside me, two cold coffees on the desk, and a growing sense that I had solved this exact tree problem before - somewhere, at some point, in a previous life.
 
 I opened my LeetCode submissions page. Then another tab to check company problems. Then a Notion page to paste the link. Then accidentally closed the wrong tab. Then reopened everything. Stared at the ceiling.
 
 *"There has to be a better way,"* I said to no one, because it was 1 AM.
 
-The next morning, LeetCode Tracker existed. A Kanban board. A company browser. Problem descriptions without leaving the app. Recent submissions pulled in automatically. And then, because the browser was still failing me — a **menu bar app**, so the whole thing lives at the top of the screen, one click away, always watching, silently judging how many days you've skipped.
+The next morning, LeetCode Tracker existed. A Kanban board. A company browser. Problem descriptions without leaving the app. Recent submissions pulled in automatically. And then, because the browser was still failing me - a **menu bar app**, so the whole thing lives at the top of the screen, one click away, always watching, silently judging how many days you've skipped.
 
 The menu bar app was the final boss. It whispered: *"You already have a web app. Why do you need a desktop app?"* And the answer was: because sometimes you just want to glance at your streak without opening a browser, okay? Let a person live.
 
