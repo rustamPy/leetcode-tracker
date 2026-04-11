@@ -35,26 +35,75 @@ jobs:
         working-directory: menubar-app
         run: npm run setup && npm run build:icon
 
-      # ── 5. Build arm64 DMG + zip ───────────────────────────────────────────
-      - name: Build arm64 (Apple Silicon)
+      # ── 5. Detect whether Apple signing secrets are configured ─────────────
+      - name: Check for signing secrets
+        id: signing
+        run: |
+          if [[ -n "${{ secrets.CSC_LINK }}" && -n "${{ secrets.APPLE_ID }}" ]]; then
+            echo "available=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── 6a. Build arm64 — WITH notarization (when secrets present) ─────────
+      - name: Build arm64 — signed + notarized
+        if: steps.signing.outputs.available == 'true'
+        working-directory: menubar-app
+        env:
+          CSC_LINK:                    ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD:            ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID:                    ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID:               ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Enable notarization in package.json at build time
+          node -e "
+            const fs=require('fs'), p=JSON.parse(fs.readFileSync('package.json'));
+            p.build.mac.notarize = { teamId: process.env.APPLE_TEAM_ID };
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
+          "
+          npx electron-builder --mac --arm64 --publish never
+
+      # ── 6b. Build arm64 — WITHOUT notarization (no secrets) ───────────────
+      - name: Build arm64 — unsigned
+        if: steps.signing.outputs.available == 'false'
         working-directory: menubar-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npx electron-builder --mac --arm64 --publish never
 
-      # ── 6. Build x64 DMG + zip (Intel) ────────────────────────────────────
-      - name: Build x64 (Intel)
+      # ── 7a. Build x64 — WITH notarization ─────────────────────────────────
+      - name: Build x64 — signed + notarized
+        if: steps.signing.outputs.available == 'true'
+        working-directory: menubar-app
+        env:
+          CSC_LINK:                    ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD:            ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID:                    ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID:               ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          node -e "
+            const fs=require('fs'), p=JSON.parse(fs.readFileSync('package.json'));
+            p.build.mac.notarize = { teamId: process.env.APPLE_TEAM_ID };
+            fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
+          "
+          npx electron-builder --mac --x64 --publish never
+
+      # ── 7b. Build x64 — WITHOUT notarization ──────────────────────────────
+      - name: Build x64 — unsigned
+        if: steps.signing.outputs.available == 'false'
         working-directory: menubar-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npx electron-builder --mac --x64 --publish never
 
-      # ── 7. Extract version from tag ────────────────────────────────────────
+      # ── 8. Extract version from tag ────────────────────────────────────────
       - name: Get version
         id: version
         run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
-      # ── 8. Create GitHub release and upload artifacts ──────────────────────
+      # ── 9. Create GitHub release and upload artifacts ──────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         env:
@@ -66,23 +115,47 @@ jobs:
 
             macOS menu bar app — track your LeetCode progress, prep for company interviews, and get a daily problem suggestion right from your menu bar.
 
-            ### Install
+            ---
 
-            | Download | Platform |
+            ### ⬇️ Download
+
+            | File | Platform |
             |---|---|
-            | **LeetCode.Tracker-${{ steps.version.outputs.VERSION }}-arm64.dmg** | Apple Silicon (M1/M2/M3/M4) |
-            | **LeetCode.Tracker-${{ steps.version.outputs.VERSION }}-x64.dmg** | Intel Mac |
-            | `*-mac.zip` | App bundle (drag to Applications) |
+            | `LeetCode Tracker-${{ steps.version.outputs.VERSION }}-arm64.dmg` | **Apple Silicon** (M1 / M2 / M3 / M4) |
+            | `LeetCode Tracker-${{ steps.version.outputs.VERSION }}-x64.dmg` | **Intel Mac** |
 
-            ### First run
-            macOS will quarantine the app since it's not notarized. Right-click → **Open** on first launch to bypass the Gatekeeper warning.
+            ---
 
-            ### Features
-            - 🔥 Streak counter in the menu bar
-            - 📅 Daily problem suggestion
-            - 🏢 Company interview prep (filter by company)
-            - ⏱ Recent submissions
-            - ↺ Live data refresh from LeetCode
+            ### 🚀 Install
+
+            1. Download the `.dmg` for your Mac
+            2. Open it and drag **LeetCode Tracker** to `/Applications`
+            3. Eject the disk image
+
+            ---
+
+            ### ⚠️ "App is damaged" / Gatekeeper warning
+
+            ${{ steps.signing.outputs.available == 'true' && '✅ This build is **signed and notarized** by Apple — open normally, no extra steps needed.' || '> This build is **unsigned** (no Apple Developer certificate). macOS will block it on first launch.' }}
+
+            ${{ steps.signing.outputs.available == 'false' && '**Fix in 2 seconds — Terminal method:**
+            ```bash
+            xattr -dr com.apple.quarantine "/Applications/LeetCode Tracker.app"
+            ```
+            Then open the app normally.
+
+            **Or use the included helper:**
+            Download `Remove.Quarantine.command` → double-click it in Finder → it removes the flag and opens the app.' || '' }}
+
+            ---
+
+            ### ✨ Features
+            - 🔥 Streak counter in the menu bar — updates live
+            - 📅 Daily problem suggestion (changes at midnight UTC)
+            - 🏢 Company interview prep — pick a company, see top questions
+            - ⏱ Recent accepted submissions
+            - ↺ Refresh live data from LeetCode
+            - ⚙ Switch LeetCode username from the settings panel
           draft: false
           prerelease: false
           files: |
@@ -90,3 +163,62 @@ jobs:
             menubar-app/dist/LeetCode Tracker-*-arm64-mac.zip
             menubar-app/dist/LeetCode Tracker-*-x64.dmg
             menubar-app/dist/LeetCode Tracker-*-x64-mac.zip
+            menubar-app/assets/Remove Quarantine.command
+
+      # ── 10. Update Homebrew tap cask with new SHA256 + version ─────────────
+      - name: Update Homebrew tap
+        env:
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          # Compute SHA256 for each arch
+          ARM_DMG="menubar-app/dist/LeetCode Tracker-${VERSION#v}-arm64.dmg"
+          X64_DMG="menubar-app/dist/LeetCode Tracker-${VERSION#v}-x64.dmg"
+
+          ARM_SHA=$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')
+          X64_SHA=""
+          if [ -f "$X64_DMG" ]; then
+            X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}')
+          fi
+
+          CASK="homebrew-tap/Casks/leetcode-tracker.rb"
+
+          # Update version
+          sed -i '' "s/version \".*\"/version \"${VERSION#v}\"/" "$CASK"
+
+          # Update arm64 SHA256
+          if [ -n "$ARM_SHA" ]; then
+            awk -v sha="$ARM_SHA" '
+              /Hardware::CPU.arm\?/ { arm=1 }
+              arm && /sha256/ { sub(/"[a-f0-9]{64}"/, "\"" sha "\""); arm=0 }
+              { print }
+            ' "$CASK" > /tmp/cask.tmp && mv /tmp/cask.tmp "$CASK"
+          fi
+
+          # Update x64 SHA256
+          if [ -n "$X64_SHA" ]; then
+            awk -v sha="$X64_SHA" '
+              /Hardware::CPU.arm\?/ { arm=1 }
+              !arm && /sha256/ { sub(/:no_check|"[a-f0-9]{64}"/, "\"" sha "\""); found=1 }
+              found { found=0; arm=0 }
+              { print }
+            ' "$CASK" > /tmp/cask.tmp && mv /tmp/cask.tmp "$CASK"
+          fi
+
+          # Push updated cask to the separate homebrew-tap repo (requires TAP_GITHUB_TOKEN secret)
+          if [ -n "$TAP_GITHUB_TOKEN" ]; then
+            git clone \
+              "https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/rustamPy/homebrew-tap.git" \
+              /tmp/homebrew-tap
+            mkdir -p /tmp/homebrew-tap/Casks
+            cp "$CASK" /tmp/homebrew-tap/Casks/leetcode-tracker.rb
+            cd /tmp/homebrew-tap
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add Casks/leetcode-tracker.rb
+            git diff --staged --quiet || git commit -m "chore: bump leetcode-tracker to ${VERSION}"
+            git push
+          else
+            echo "⚠️  TAP_GITHUB_TOKEN not set — skipping tap update. Add secret to enable auto-updates."
+          fi
+

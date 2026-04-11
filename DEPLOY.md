@@ -8,4 +8,4 @@ gh repo create leetcode-tracker --public --source=. --remote=origin --push
 ```
 
 GitHub Pages will auto-deploy via the Actions workflow on every push to `main`.
-The live URL will be: https://<your-github-username>.github.io/leetcode-tracker/
+The live URL will be: https://rustampy.github.io/leetcode-tracker/

@@ -28,6 +28,7 @@
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.developer-tools",
+      "notarize": false,
       "extendInfo": {
         "LSUIElement": "1",
         "NSHumanReadableCopyright": "Copyright © 2026 Rustam Karimov"
