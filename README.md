@@ -18,6 +18,44 @@ A personal Kanban board for tracking LeetCode progress — browse problems by co
 
 ---
 
+## macOS Menu Bar App
+
+A native menu bar app is available alongside the web app — streak counter, daily problem, company prep, and recent submissions, all from your menu bar.
+
+### Install via Homebrew (recommended)
+
+```bash
+brew tap rustamPy/tap
+brew install --cask leetcode-tracker
+```
+
+Homebrew automatically removes the macOS quarantine flag, so the app opens without any "damaged" or security warning.
+
+### Install manually
+
+Download the `.dmg` for your Mac from the [latest release](https://github.com/rustamPy/leetcode-tracker/releases/latest):
+
+| File | Platform |
+|------|----------|
+| `LeetCode Tracker-*-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) |
+| `LeetCode Tracker-*-x64.dmg` | Intel Mac |
+
+After dragging the app to `/Applications`, run once to clear Gatekeeper's quarantine flag:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/LeetCode Tracker.app"
+```
+
+Or double-click the `Remove Quarantine.command` file included in the release.
+
+### Update
+
+```bash
+brew upgrade --cask leetcode-tracker
+```
+
+---
+
 ## Architecture
 
 ```
