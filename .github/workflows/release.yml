@@ -1,35 +1,52 @@
 name: Release macOS App
 
+# Triggered automatically when a PR is merged into main.
+# Reads the version from menubar-app/package.json.
+# If that version has no tag yet → builds, tags, creates GitHub Release, updates Homebrew.
+# If the tag already exists → skips silently (idempotent).
+
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+      is_new: ${{ steps.check.outputs.is_new }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: read
+        run: |
+          VERSION=$(node -p "require('./menubar-app/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $VERSION"
+
+      - name: Check if tag already exists
+        id: check
+        run: |
+          if git ls-remote --tags origin "refs/tags/v${{ steps.read.outputs.version }}" | grep -q .; then
+            echo "is_new=false" >> "$GITHUB_OUTPUT"
+            echo "Tag v${{ steps.read.outputs.version }} already exists — skipping release."
+          else
+            echo "is_new=true" >> "$GITHUB_OUTPUT"
+            echo "Tag v${{ steps.read.outputs.version }} is new — will release."
+          fi
+
   build-and-release:
+    needs: check-version
+    if: needs.check-version.outputs.is_new == 'true'
     runs-on: macos-latest
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # needed to inspect branch history
+      - uses: actions/checkout@v4
 
-      # ── 1a. Guard: only release from main ──────────────────────────────────
-      - name: Verify tag is on main
-        run: |
-          git fetch origin main
-          if ! git branch -r --contains "${{ github.sha }}" | grep -q 'origin/main'; then
-            echo "ERROR: tag ${{ github.ref_name }} does not point to a commit on main."
-            echo "Releases must be cut from main. Aborting."
-            exit 1
-          fi
-
-      # ── 2. Set up Node ─────────────────────────────────────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,44 +54,43 @@ jobs:
           cache: 'npm'
           cache-dependency-path: menubar-app/package-lock.json
 
-      # ── 3. Install dependencies ────────────────────────────────────────────
       - name: Install dependencies
         working-directory: menubar-app
         run: npm ci
 
-      # ── 4. Sync data files + generate icons ────────────────────────────────
       - name: Setup (data + icons)
         working-directory: menubar-app
         run: npm run setup && npm run build:icon
 
-      # ── 5. Build arm64 ─────────────────────────────────────────────────────
       - name: Build arm64
         working-directory: menubar-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npx electron-builder --mac --arm64 --publish never
 
-      # ── 6. Build x64 ──────────────────────────────────────────────────────
       - name: Build x64
         working-directory: menubar-app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: npx electron-builder --mac --x64 --publish never
 
-      # ── 7. Extract version from tag ────────────────────────────────────────
-      - name: Get version
-        id: version
-        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+      - name: Create tag
+        run: |
+          VERSION="v${{ needs.check-version.outputs.version }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
 
-      # ── 8. Create GitHub release and upload artifacts ──────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: "LeetCode Tracker ${{ steps.version.outputs.VERSION }}"
+          tag_name: "v${{ needs.check-version.outputs.version }}"
+          name: "LeetCode Tracker v${{ needs.check-version.outputs.version }}"
           body: |
-            ## LeetCode Tracker ${{ steps.version.outputs.VERSION }}
+            ## LeetCode Tracker v${{ needs.check-version.outputs.version }}
 
             macOS menu bar app — track your LeetCode progress, prep for company interviews, and get a daily problem suggestion right from your menu bar.
 
@@ -84,8 +100,8 @@ jobs:
 
             | File | Platform |
             |---|---|
-            | `LeetCode Tracker-${{ steps.version.outputs.VERSION }}-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) |
-            | `LeetCode Tracker-${{ steps.version.outputs.VERSION }}-x64.dmg` | Intel Mac |
+            | `LeetCode Tracker-${{ needs.check-version.outputs.version }}-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) |
+            | `LeetCode Tracker-${{ needs.check-version.outputs.version }}-x64.dmg` | Intel Mac |
 
             ---
 
@@ -125,7 +141,6 @@ jobs:
             menubar-app/dist/LeetCode.Tracker-*-x64-mac.zip
             menubar-app/assets/Remove Quarantine.command
 
-      # ── 9. Auto-update Homebrew cask ───────────────────────────────────────
       - name: Update Homebrew tap
         env:
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
@@ -135,8 +150,7 @@ jobs:
             exit 0
           fi
 
-          VERSION="${{ steps.version.outputs.VERSION }}"
-          VER="${VERSION#v}"   # strip leading 'v'
+          VER="${{ needs.check-version.outputs.version }}"
 
           ARM_DMG="menubar-app/dist/LeetCode.Tracker-${VER}-arm64.dmg"
           X64_DMG="menubar-app/dist/LeetCode.Tracker-${VER}-x64.dmg"
@@ -172,6 +186,6 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/leetcode-tracker.rb
-          git diff --staged --quiet || git commit -m "chore: bump leetcode-tracker to ${VERSION}"
+          git diff --staged --quiet || git commit -m "chore: bump leetcode-tracker to v${VER}"
           git push
 

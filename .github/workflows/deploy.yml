@@ -16,7 +16,6 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
-# ── Production: main branch → GitHub Pages ─────────────────────────────────
 
 jobs:
   build:
@@ -64,7 +63,6 @@ jobs:
       - uses: actions/deploy-pages@v4
         id: deployment
 
-# ── Preview: develop branch → build artifact only ───────────────────────────
 
   preview-build:
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
