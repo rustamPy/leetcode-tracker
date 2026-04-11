@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "LeetCode Tracker — macOS menu bar app",
   "author": "Rustam Karimov",
-  "main": "main.js",,
+  "main": "main.js",
   "scripts": {
     "setup": "node scripts/sync-data.js && node scripts/create-icon.js",
     "start": "electron .",
