@@ -181,7 +181,7 @@ ipcMain.on('open-webapp', () => {
 });
 
 ipcMain.on('open-tracker', () => {
-    shell.openExternal('http://localhost:5173');
+    shell.openExternal('https://rustampy.github.io/leetcode-tracker/');
 });
 
 // ── URL validation ────────────────────────────────────────────────────────────
