@@ -113,3 +113,53 @@ jobs:
             menubar-app/dist/LeetCode.Tracker-*-x64-mac.zip
             menubar-app/assets/Remove Quarantine.command
 
+      # ── 9. Auto-update Homebrew cask ───────────────────────────────────────
+      - name: Update Homebrew tap
+        env:
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$TAP_GITHUB_TOKEN" ]; then
+            echo "TAP_GITHUB_TOKEN not set — skipping cask update"
+            exit 0
+          fi
+
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          VER="${VERSION#v}"   # strip leading 'v'
+
+          ARM_DMG="menubar-app/dist/LeetCode.Tracker-${VER}-arm64.dmg"
+          X64_DMG="menubar-app/dist/LeetCode.Tracker-${VER}-x64.dmg"
+
+          ARM_SHA=$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')
+          X64_SHA=""
+          [ -f "$X64_DMG" ] && X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}')
+
+          git clone "https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/rustamPy/homebrew-tap.git" /tmp/tap
+          CASK="/tmp/tap/Casks/leetcode-tracker.rb"
+
+          # Update version
+          sed -i '' "s/version \".*\"/version \"${VER}\"/" "$CASK"
+
+          # Update arm64 SHA256
+          awk -v sha="$ARM_SHA" '
+            /Hardware::CPU.arm\?/ { arm=1 }
+            arm && /sha256/ { sub(/:no_check|"[a-f0-9]{64}"/, "\"" sha "\""); arm=0 }
+            { print }
+          ' "$CASK" > /tmp/cask.tmp && mv /tmp/cask.tmp "$CASK"
+
+          # Update x64 SHA256
+          if [ -n "$X64_SHA" ]; then
+            awk -v sha="$X64_SHA" '
+              /Hardware::CPU.arm\?/ { arm=1 }
+              /else/ { arm=0 }
+              !arm && /sha256/ { sub(/:no_check|"[a-f0-9]{64}"/, "\"" sha "\"") }
+              { print }
+            ' "$CASK" > /tmp/cask.tmp && mv /tmp/cask.tmp "$CASK"
+          fi
+
+          cd /tmp/tap
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/leetcode-tracker.rb
+          git diff --staged --quiet || git commit -m "chore: bump leetcode-tracker to ${VERSION}"
+          git push
+
