@@ -54,7 +54,6 @@ export default function ProblemDrawer({ problem, loading, onClose }) {
         {!loading && problem?.question && (
           <div
             className="drawer-body"
-            // Content is served from the LeetCode API (read-only problem descriptions)
             dangerouslySetInnerHTML={{ __html: problem.question }}
           />
         )}

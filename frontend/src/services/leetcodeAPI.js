@@ -1,16 +1,11 @@
-/**
- * LeetCode data service — fetches via LeetCode GraphQL,
- * caches results in localStorage, supports any username.
- */
 
 
 const GQL = import.meta.env.PROD
-  ? (import.meta.env.VITE_GQL_PROXY ?? "")  // Cloudflare Worker URL set at build time
-  : "/lc-graphql";                           // proxied via Vite → leetcode.com/graphql
-const CACHE_KEY = "lc_user_cache_v1";   // { [username]: { data, cachedAt } }
-const CACHE_TTL = Infinity;          // never expire — use refresh button to force update
+  ? (import.meta.env.VITE_GQL_PROXY ?? "")
+  : "/lc-graphql";
+const CACHE_KEY = "lc_user_cache_v1";
+const CACHE_TTL = Infinity;
 
-// ── GraphQL query ──────────────────────────────────────────────
 const PROFILE_QUERY = `
 query GetUser($username: String!) {
   matchedUser(username: $username) {
@@ -46,7 +41,6 @@ query GetSubs($username: String!, $limit: Int!) {
   }
 }`;
 
-// ── Fetch helpers ──────────────────────────────────────────────
 async function gql(query, variables) {
   const res = await fetch(GQL, {
     method: "POST",
@@ -59,7 +53,7 @@ async function gql(query, variables) {
   return json.data;
 }
 
-// ── Cache helpers ──────────────────────────────────────────────
+
 function loadCache() {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}"); }
   catch { return {}; }
@@ -82,11 +76,10 @@ export function getCachedUsernames() {
   return Object.keys(loadCache());
 }
 
-// ── Normalise raw GQL response ─────────────────────────────────
 function normalise(profileData, subData) {
   const u = profileData?.matchedUser ?? null;
   const cr = profileData?.userContestRanking ?? {};
-  if (!u) return null;                    // username doesn't exist
+  if (!u) return null;
 
   const ac = Object.fromEntries(
     (u.submitStats?.acSubmissionNum ?? []).map(s => [s.difficulty, s.count])
@@ -126,11 +119,9 @@ function normalise(profileData, subData) {
   };
 }
 
-// ── Main fetch function ────────────────────────────────────────
 export async function fetchUserData(username, { force = false } = {}) {
   const key = username.toLowerCase();
 
-  // 1. Return valid cache unless forced
   if (!force) {
     const entry = getCacheEntry(username);
     if (entry && Date.now() - entry.cachedAt < CACHE_TTL) {
@@ -138,7 +129,6 @@ export async function fetchUserData(username, { force = false } = {}) {
     }
   }
 
-  // 2. Fetch from LeetCode GraphQL
   const [profileData, subData] = await Promise.all([
     gql(PROFILE_QUERY, { username }),
     gql(SUBMISSIONS_QUERY, { username, limit: 300 }),
@@ -147,7 +137,6 @@ export async function fetchUserData(username, { force = false } = {}) {
   const data = normalise(profileData, subData);
   if (!data) throw new Error(`User "${username}" not found on LeetCode`);
 
-  // 3. Write cache
   const cache = loadCache();
   cache[key] = { data, cachedAt: Date.now() };
   saveCache(cache);
@@ -155,7 +144,6 @@ export async function fetchUserData(username, { force = false } = {}) {
   return { data, fromCache: false, cachedAt: Date.now() };
 }
 
-// ── Fetch full problem content (description, tags, hints) ─────
 const PROBLEM_QUERY = `
 query GetProblem($titleSlug: String!) {
   question(titleSlug: $titleSlug) {
@@ -183,7 +171,6 @@ export async function fetchProblem(titleSlug) {
   };
 }
 
-// ── Validate username (lightweight — only checks matchedUser) ──
 export async function validateUsername(username) {
   if (!username?.trim()) return { valid: false, error: "Username required" };
   try {
@@ -196,7 +183,6 @@ export async function validateUsername(username) {
     if (u?.username) return { valid: true, avatar: u.profile?.userAvatar ?? null };
     return { valid: false, error: "Username not found on LeetCode" };
   } catch (e) {
-    // Network / proxy error — can't validate from browser, assume valid
     if (
       e.message.includes("Failed to fetch") ||
       e.message.includes("NetworkError") ||

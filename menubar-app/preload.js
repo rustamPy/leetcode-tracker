@@ -1,7 +1,6 @@
 'use strict';
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Keep at most one data-update listener to avoid duplicates across show/hide cycles
 let _dataUpdateCb = null;
 
 contextBridge.exposeInMainWorld('lc', {
@@ -16,7 +15,6 @@ contextBridge.exposeInMainWorld('lc', {
     openWebApp: () => ipcRenderer.send('open-webapp'),
     openTracker: () => ipcRenderer.send('open-tracker'),
 
-    /** Register a single callback for live data pushes from the main process. */
     onDataUpdate: (fn) => {
         if (_dataUpdateCb) ipcRenderer.removeListener('data-update', _dataUpdateCb);
         _dataUpdateCb = (_, payload) => fn(payload);

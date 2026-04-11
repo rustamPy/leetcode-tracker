@@ -8,24 +8,20 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 
-// ── Single-instance guard ────────────────────────────────────────────────────
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
-// ── State ────────────────────────────────────────────────────────────────────
 let tray = null;
 let win = null;
-let userData = null;   // in-memory cache of current user stats
-let fetchedAt = null;   // timestamp (ms) of last successful fetch
-let _companyData = null; // lazy-loaded, cached once
+let userData = null;
+let fetchedAt = null;
+let _companyData = null;
 
-// ── Transparent 1×1 PNG fallback for tray icon ───────────────────────────────
 const EMPTY_PNG = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNgAAIAAAUAAen63NgAAAAASUVORK5CYII=',
     'base64',
 );
 
-// ── App bootstrap ────────────────────────────────────────────────────────────
-app.dock?.hide(); // hide from macOS Dock
+app.dock?.hide();
 
 app.whenReady().then(async () => {
     createTray();
@@ -33,16 +29,14 @@ app.whenReady().then(async () => {
     await loadInitialData();
 });
 
-// Keep the app alive when the popup window is closed
 app.on('window-all-closed', e => e.preventDefault());
 
-// ── Tray ─────────────────────────────────────────────────────────────────────
 function createTray() {
     const iconPath = path.join(__dirname, 'assets', 'tray-icon.png');
     let icon;
     if (fs.existsSync(iconPath)) {
         icon = nativeImage.createFromPath(iconPath);
-        icon.setTemplateImage(true); // adapts to dark/light menu bar
+        icon.setTemplateImage(true);
     } else {
         icon = nativeImage.createFromBuffer(EMPTY_PNG);
     }
@@ -54,7 +48,6 @@ function createTray() {
     tray.on('right-click', toggleWindow);
 }
 
-// ── Popup window ─────────────────────────────────────────────────────────────
 function createWindow() {
     win = new BrowserWindow({
         width: 400,
@@ -70,13 +63,12 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: false,  // preload needs require('electron')
+            sandbox: false,
         },
     });
 
     win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
-    // ── Dev: auto-reload when renderer/index.html is saved ─────────────────
     if (process.env.NODE_ENV === 'development') {
         const fs = require('fs');
         fs.watch(path.join(__dirname, 'renderer', 'index.html'), () => {
@@ -84,7 +76,6 @@ function createWindow() {
         });
     }
 
-    // Auto-hide when the popup loses focus
     win.on('blur', () => {
         if (!win.webContents.isDevToolsOpened()) win.hide();
     });
@@ -108,19 +99,16 @@ function positionAndShow() {
     let x = Math.round(tb.x + tb.width / 2 - wb.width / 2);
     let y = tb.y + tb.height + 4;
 
-    // Keep within screen
     if (x + wb.width > wa.x + wa.width) x = wa.x + wa.width - wb.width - 8;
     if (x < wa.x) x = wa.x + 8;
-    if (y + wb.height > wa.y + wa.height) y = tb.y - wb.height - 4; // above tray
+    if (y + wb.height > wa.y + wa.height) y = tb.y - wb.height - 4;
 
     win.setPosition(x, y);
     win.show();
     win.focus();
-    // Push current data immediately so the renderer always has fresh state
     win.webContents.send('data-update', { userData, fetchedAt });
 }
 
-// ── IPC handlers ─────────────────────────────────────────────────────────────
 ipcMain.handle('get-cached-data', () => ({ userData, fetchedAt }));
 
 ipcMain.handle('fetch-user-data', async (_, username) => {
@@ -152,7 +140,6 @@ ipcMain.handle('get-company-problems', (_, company) => {
         .map(([slug, p]) => ({ ...p, titleSlug: slug }));
     const realSlugs = new Set(real.map(p => p.titleSlug));
 
-    // AI-suggested: ML model output, excluding real ones, up to 200
     const suggested = (suggestedMap[company] ?? [])
         .filter(slug => !realSlugs.has(slug))
         .slice(0, 200)
@@ -167,10 +154,8 @@ ipcMain.handle('get-daily-problem', () => {
         const p = dataFile('problemsData.json');
         if (!p) return null;
         const all = JSON.parse(fs.readFileSync(p, 'utf-8'));
-        // Filter out premium problems that users can't access
         const slugs = Object.keys(all).filter(s => !all[s].premium && all[s].id);
         if (!slugs.length) return null;
-        // Seed by calendar date so it changes each day but is consistent within a day
         const d = new Date();
         const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
         const slug = slugs[seed % slugs.length];
@@ -182,13 +167,11 @@ ipcMain.handle('get-username', () => getStoredUsername());
 
 ipcMain.handle('save-username', (_, username) => {
     if (typeof username !== 'string') return false;
-    // Validate: only safe characters, reasonable length
     if (!/^[a-zA-Z0-9_-]{1,40}$/.test(username.trim())) return false;
     fs.writeFileSync(usernameFile(), username.trim(), 'utf-8');
     return true;
 });
 
-// One-way messages
 ipcMain.on('open-url', (_, url) => {
     if (isSafeLeetCodeUrl(url)) shell.openExternal(url);
 });
@@ -202,7 +185,6 @@ ipcMain.on('open-tracker', () => {
     shell.openExternal('https://rustampy.github.io/leetcode-tracker/');
 });
 
-// ── URL validation ────────────────────────────────────────────────────────────
 function isSafeLeetCodeUrl(url) {
     try {
         const u = new URL(url);
@@ -210,7 +192,6 @@ function isSafeLeetCodeUrl(url) {
     } catch { return false; }
 }
 
-// ── LeetCode GraphQL API ─────────────────────────────────────────────────────
 const GQL_PROFILE = `
 query GetUser($u: String!) {
   matchedUser(username: $u) {
@@ -297,7 +278,6 @@ async function fetchLeetCodeData(username) {
     };
 }
 
-// ── Streak calculation ───────────────────────────────────────────────────────
 function calcStreak(submissions = []) {
     if (!submissions.length) return 0;
     const DAY = 86_400_000;
@@ -322,9 +302,7 @@ function updateTrayTitle() {
     tray.setToolTip(`LeetCode Tracker\n${total} solved · ${streak}-day streak`);
 }
 
-// ── Data persistence helpers ─────────────────────────────────────────────────
 function dataDir() {
-    // When bundled by electron-builder, extraResources lands in process.resourcesPath
     const rp = path.join(process.resourcesPath ?? __dirname, 'data');
     if (fs.existsSync(rp)) return rp;
     return path.join(__dirname, 'data');
@@ -342,7 +320,6 @@ function usernameFile() {
 function getStoredUsername() {
     const f = usernameFile();
     if (fs.existsSync(f)) return fs.readFileSync(f, 'utf-8').trim();
-    // Fall back to bundled userData.json username
     try {
         const fp = dataFile('userData.json');
         if (fp) return JSON.parse(fs.readFileSync(fp, 'utf-8')).username ?? 'thisisrustam';
@@ -371,9 +348,7 @@ function saveUserDataLocally(data) {
     } catch { }
 }
 
-// ── Startup data loading ─────────────────────────────────────────────────────
 async function loadInitialData() {
-    // 1. Try previously-fetched live cache (most up-to-date without network call)
     try {
         const p = path.join(app.getPath('userData'), 'live-userData.json');
         if (fs.existsSync(p)) {
@@ -384,7 +359,6 @@ async function loadInitialData() {
         }
     } catch { }
 
-    // 2. Fall back to bundled userData.json (static snapshot from build scripts)
     if (!userData) {
         try {
             const fp = dataFile('userData.json');
@@ -411,15 +385,13 @@ async function loadInitialData() {
         } catch { }
     }
 
-    // 3. Silently fetch fresh data in the background
     fetchLeetCodeData(getStoredUsername())
         .then(fresh => {
             userData = fresh;
             fetchedAt = Date.now();
             updateTrayTitle();
             saveUserDataLocally(fresh);
-            // Push update to popup if it's currently open
             if (win?.isVisible()) win.webContents.send('data-update', { userData, fetchedAt });
         })
-        .catch(() => { }); // graceful degradation — already have cached data
+        .catch(() => { });
 }

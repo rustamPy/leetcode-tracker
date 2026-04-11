@@ -108,6 +108,5 @@ export function useAchievements() {
         const ctx = { tasks, submissions, solved, contest, streak };
         const achievements = ACHIEVEMENTS.map(a => ({ ...a, earned: a.check(ctx) }));
         return { streak, achievements };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data, tasks.length]);
 }

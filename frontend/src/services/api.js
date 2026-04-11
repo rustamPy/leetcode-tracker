@@ -15,9 +15,9 @@ export const dataFetchedAt = userData.fetchedAt;
 export const solvedSlugs = new Set(userSubmissions.map(s => s.titleSlug));
 
 /* ── Company data ──────────────────────────────────────────── */
-export const companies = companyData.companies;    // sorted string[]
-export const problemsBySlug = companyData.problems;     // slug → {title,difficulty,topics,url,companies}
-const suggestedByCompany = companyData.suggested ?? {}; // company → slug[]
+export const companies = companyData.companies;
+export const problemsBySlug = companyData.problems;
+const suggestedByCompany = companyData.suggested ?? {};
 
 export function getCompaniesForSlug(slug) {
   return problemsBySlug[slug]?.companies ?? [];
@@ -28,7 +28,6 @@ export function getSuggestedForCompany(company, { topic = "", difficulty = "" } 
   const d = difficulty.toLowerCase();
   return slugs
     .map(slug => {
-      // prefer full data from problemsData, fall back to companyData
       const p = allProblemsBySlug[slug] ?? problemsBySlug[slug];
       if (!p) return null;
       return { ...p, titleSlug: slug };
@@ -76,11 +75,8 @@ export function searchProblems({ query = "", difficulty = "" } = {}) {
     .slice(0, 50);
 }
 
-/* ── All-problems data (from Leetcode.csv via build script) ── */
-// slug → { id, title, difficulty, topics, premium }
 export const allProblemsBySlug = problemsData;
 
-// Sorted list of all unique topics across all problems
 export const allTopics = [...new Set(
   Object.values(problemsData).flatMap(p => p.topics ?? [])
 )].sort();

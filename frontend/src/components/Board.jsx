@@ -24,7 +24,6 @@ export default function Board() {
   };
   const [completedSeed, setCompletedSeed] = useState(0);
 
-  // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerLoading, setDrawerLoading] = useState(false);
   const [drawerProblem, setDrawerProblem] = useState(null);
@@ -62,7 +61,6 @@ export default function Board() {
     }
   }, []);
 
-  // Build completed cards from live hook data — random sample of 20
   const allApiCompleted = useMemo(() => {
     const subs = data?.submissions ?? [];
     const seen = new Set();
@@ -82,12 +80,10 @@ export default function Board() {
       }));
   }, [data]);
 
-  // Re-sample 20 random whenever completedSeed changes
   const apiCompleted = useMemo(() => {
     if (allApiCompleted.length <= 20) return allApiCompleted;
     const shuffled = [...allApiCompleted].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 20);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allApiCompleted, completedSeed]);
 
   const filter = (list) =>

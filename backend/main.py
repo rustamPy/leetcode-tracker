@@ -16,7 +16,11 @@ app = FastAPI(title="LeetCode Tracker API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,7 +42,7 @@ class TaskIn(BaseModel):
     title: str
     titleSlug: str
     difficulty: Optional[str] = None
-    status: str  # "doing" | "todo"
+    status: str
     tags: Optional[list[str]] = []
     url: Optional[str] = None
 
@@ -55,8 +59,6 @@ def _fetch(path: str, params: str = "") -> dict:
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-
-# ── LeetCode API proxy endpoints ─────────────────────────────────────────────
 
 @app.get("/api/profile")
 def get_profile():
@@ -102,8 +104,6 @@ def get_problem(titleSlug: str):
 def get_daily():
     return _fetch("/daily")
 
-
-# ── Local task management ─────────────────────────────────────────────────────
 
 @app.get("/api/tasks")
 def get_tasks():

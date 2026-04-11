@@ -7,9 +7,9 @@ export default function UsernameModal({ onClose }) {
   const { username: current, changeUsername, clearCache, clearCookies } = useLeetCode();
 
   const [input,     setInput]     = useState(current);
-  const [state,     setState]     = useState("idle");   // idle | validating | valid | invalid
+  const [state,     setState]     = useState("idle");
   const [errMsg,    setErrMsg]    = useState("");
-  const [preview,   setPreview]   = useState(null);     // avatar url on valid
+  const [preview,   setPreview]   = useState(null);
   const [cached,    setCached]    = useState([]);
   const [cookies,   setCookies]   = useState([]);
   const timerRef = useRef(null);
@@ -21,7 +21,6 @@ export default function UsernameModal({ onClose }) {
 
   useEffect(() => { refreshLists(); }, []);
 
-  // Debounced validation
   useEffect(() => {
     const trimmed = input.trim();
     if (!trimmed || trimmed.toLowerCase() === current.toLowerCase()) {

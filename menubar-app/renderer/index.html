@@ -717,7 +717,6 @@
 <body>
     <div class="app">
 
-        <!-- ── Header ─────────────────────────────────────────────────────────── -->
         <header class="header">
             <div class="user">
                 <div class="avatar-wrap">
@@ -738,7 +737,6 @@
             </div>
         </header>
 
-        <!-- ── Stats ──────────────────────────────────────────────────────────── -->
         <section class="stats">
             <div class="stat streak-stat">
                 <span class="streak-icon">🔥</span>
@@ -762,7 +760,6 @@
             </div>
         </section>
 
-        <!-- ── Progress bar ───────────────────────────────────────────────────── -->
         <div class="progress-row">
             <span class="total-lbl"><strong id="total">0</strong> solved</span>
             <div class="pbar">
@@ -773,24 +770,20 @@
             <span class="synced-lbl" id="synced-lbl"></span>
         </div>
 
-        <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
         <nav class="tabs">
             <button class="tab active" data-tab="daily">Daily</button>
             <button class="tab" data-tab="company">Company</button>
             <button class="tab" data-tab="recent">Recent</button>
         </nav>
 
-        <!-- ── Tab panels ─────────────────────────────────────────────────────── -->
         <div class="tab-panels">
 
-            <!-- Daily -->
             <section id="panel-daily" class="panel active">
                 <p class="panel-hint">Problem of the day — refreshes midnight UTC</p>
                 <div id="daily-card" class="problem-card loading">Loading…</div>
                 <div id="focus-tip" class="focus-tip" style="display:none"></div>
             </section>
 
-            <!-- Company Prep -->
             <section id="panel-company" class="panel">
                 <select id="company-sel" class="company-sel">
                     <option value="">Choose a company…</option>
@@ -802,16 +795,14 @@
                 </div>
             </section>
 
-            <!-- Recent Submissions -->
             <section id="panel-recent" class="panel">
                 <div id="recent-list" class="prob-list">
                     <p class="empty-hint">No recent submissions</p>
                 </div>
             </section>
 
-        </div><!-- /tab-panels -->
+        </div>
 
-        <!-- ── Settings overlay ─────────────────────────────────────────────── -->
         <div id="settings-overlay" class="settings-overlay hidden">
             <div class="settings-box">
                 <div class="settings-title">⚙ Settings</div>
@@ -826,12 +817,12 @@
             </div>
         </div>
 
-    </div><!-- /app -->
+    </div>
 
     <script>
         'use strict';
 
-        const LC_TOTALS = { easy: 880, medium: 1842, hard: 816 }; // approx LeetCode totals
+        const LC_TOTALS = { easy: 880, medium: 1842, hard: 816 };
 
         let appData = null;
         let companies = [];

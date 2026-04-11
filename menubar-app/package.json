@@ -5,7 +5,7 @@
   "author": "Rustam Karimov",
   "main": "main.js",
   "scripts": {
-    "setup": "node scripts/sync-data.js && node scripts/create-icon.js",
+    "setup": "node scripts/sync-data.js",
     "start": "NODE_ENV=development electron .",
     "build:icon": "node scripts/create-icns.js",
     "build": "npm run setup && npm run build:icon && electron-builder --mac --dir",
