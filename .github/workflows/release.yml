@@ -91,7 +91,7 @@ jobs:
             3. Eject the disk image
             4. Run the quarantine fix once (macOS blocks unsigned apps on first launch):
             ```bash
-            xattr -dr com.apple.quarantine "/Applications/LeetCode Tracker.app"
+            find "/Applications/LeetCode Tracker.app" -exec xattr -d com.apple.quarantine {} \; 2>/dev/null; true
             ```
             Or double-click the included `Remove Quarantine.command` file.
 
