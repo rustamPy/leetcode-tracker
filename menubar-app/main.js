@@ -7,6 +7,7 @@ const {
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+const { isSafeLeetCodeUrl, calcStreak } = require('./utils');
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
@@ -185,13 +186,6 @@ ipcMain.on('open-tracker', () => {
     shell.openExternal('https://rustampy.github.io/leetcode-tracker/');
 });
 
-function isSafeLeetCodeUrl(url) {
-    try {
-        const u = new URL(url);
-        return u.protocol === 'https:' && u.hostname === 'leetcode.com';
-    } catch { return false; }
-}
-
 const GQL_PROFILE = `
 query GetUser($u: String!) {
   matchedUser(username: $u) {
@@ -276,22 +270,6 @@ async function fetchLeetCodeData(username) {
         activeBadge: user.activeBadge ?? null,
         submissions: subsData?.recentAcSubmissionList ?? [],
     };
-}
-
-function calcStreak(submissions = []) {
-    if (!submissions.length) return 0;
-    const DAY = 86_400_000;
-    function key(ms) {
-        const d = new Date(ms);
-        return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
-    }
-    const days = new Set(submissions.map(s => key(Number(s.timestamp) * 1000)));
-    const now = Date.now();
-    if (!days.has(key(now)) && !days.has(key(now - DAY))) return 0;
-    let streak = 0;
-    let cursor = days.has(key(now)) ? now : now - DAY;
-    while (days.has(key(cursor))) { streak++; cursor -= DAY; }
-    return streak;
 }
 
 function updateTrayTitle() {
