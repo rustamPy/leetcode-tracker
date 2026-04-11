@@ -15,6 +15,15 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1
 fi
 
+# Enforce releases from main only
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  echo "Error: releases must be cut from the main branch."
+  echo "  Currently on: ${CURRENT_BRANCH}"
+  echo "  Merge your changes into main first, then re-run this script."
+  exit 1
+fi
+
 # Check for uncommitted changes
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "Error: uncommitted changes detected. Commit or stash them first."

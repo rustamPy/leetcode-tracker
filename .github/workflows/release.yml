@@ -16,6 +16,18 @@ jobs:
       # ── 1. Checkout ────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed to inspect branch history
+
+      # ── 1a. Guard: only release from main ──────────────────────────────────
+      - name: Verify tag is on main
+        run: |
+          git fetch origin main
+          if ! git branch -r --contains "${{ github.sha }}" | grep -q 'origin/main'; then
+            echo "ERROR: tag ${{ github.ref_name }} does not point to a commit on main."
+            echo "Releases must be cut from main. Aborting."
+            exit 1
+          fi
 
       # ── 2. Set up Node ─────────────────────────────────────────────────────
       - name: Set up Node.js
