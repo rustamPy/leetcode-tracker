@@ -135,13 +135,24 @@ ipcMain.handle('get-companies', () => {
 
 ipcMain.handle('get-company-problems', (_, company) => {
     const data = readCompanyData();
-    if (!data) return [];
-    const suggested = data.suggested ?? {};
+    if (!data) return { real: [], suggested: [] };
     const problems = data.problems ?? {};
-    const slugs = (suggested[company] ?? []).slice(0, 12);
-    return slugs
+    const suggestedMap = data.suggested ?? {};
+
+    // Real questions: problems that list this company in their companies array
+    const real = Object.entries(problems)
+        .filter(([, p]) => Array.isArray(p.companies) && p.companies.includes(company))
+        .map(([slug, p]) => ({ ...p, titleSlug: slug }));
+    const realSlugs = new Set(real.map(p => p.titleSlug));
+
+    // AI-suggested: ML model output, excluding real ones, up to 150
+    const suggested = (suggestedMap[company] ?? [])
+        .filter(slug => !realSlugs.has(slug))
+        .slice(0, 150)
         .map(slug => ({ ...problems[slug], titleSlug: slug }))
         .filter(p => p && p.title);
+
+    return { real, suggested };
 });
 
 ipcMain.handle('get-daily-problem', () => {

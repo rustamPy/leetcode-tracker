@@ -497,6 +497,55 @@
             cursor: pointer;
         }
 
+        .company-search {
+            width: 100%;
+            padding: 7px 10px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font);
+        }
+
+        .company-search:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        .company-search::placeholder {
+            color: var(--text3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 2px 2px;
+        }
+
+        .section-header .count-badge {
+            background: var(--surface2);
+            color: var(--text2);
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
         .prob-list {
             display: flex;
             flex-direction: column;
@@ -729,6 +778,8 @@
                 <select id="company-sel" class="company-sel">
                     <option value="">Choose a company…</option>
                 </select>
+                <input id="company-search" class="company-search" type="text" placeholder="Search problems by title…"
+                    style="display:none" autocomplete="off" spellcheck="false">
                 <div id="company-list" class="prob-list">
                     <p class="empty-hint">Select a company to see top interview problems</p>
                 </div>
@@ -763,14 +814,13 @@
     <script>
         'use strict';
 
-        // ─── Constants ───────────────────────────────────────────────────────────────
         const LC_TOTALS = { easy: 880, medium: 1842, hard: 816 }; // approx LeetCode totals
 
-        // ─── State ───────────────────────────────────────────────────────────────────
         let appData = null;
         let companies = [];
+        let companyRealProblems = [];
+        let companySuggestedProblems = [];
 
-        // ─── Initialization ───────────────────────────────────────────────────────────
         async function init() {
             // Load companies in background (4.5 MB file, do it early)
             window.lc.getCompanies().then(list => {
@@ -783,30 +833,25 @@
                 });
             });
 
-            // Load cached data immediately
             const cached = await window.lc.getCachedData();
             if (cached.userData) {
                 appData = cached.userData;
                 renderAll(cached.userData, cached.fetchedAt);
             }
 
-            // Load the daily problem
             loadDailyProblem();
 
-            // Listen for live data pushes from main process (fires when window is shown)
             window.lc.onDataUpdate(({ userData, fetchedAt }) => {
                 if (!userData) return;
                 appData = userData;
                 renderAll(userData, fetchedAt);
             });
 
-            // Pre-fill username input
             window.lc.getUsername().then(u => {
                 $('username-input').value = u ?? '';
             });
         }
 
-        // ─── Render helpers ───────────────────────────────────────────────────────────
         function renderAll(data, fetchedAt) {
             if (!data) return;
             renderProfile(data);
@@ -844,13 +889,11 @@
             setText('medium', s.medium ?? 0);
             setText('hard', s.hard ?? 0);
 
-            // Streak from recent submissions
             const streak = calcStreak(data.submissions ?? []);
             setText('streak', streak);
             $('streak').closest('.streak-stat').querySelector('.streak-icon')
                 .textContent = streak > 0 ? '🔥' : '💤';
 
-            // Progress bar (show user solved vs rough LC total)
             const tot = (s.easy ?? 0) + (s.medium ?? 0) + (s.hard ?? 0);
             const denom = LC_TOTALS.easy + LC_TOTALS.medium + LC_TOTALS.hard;
             if (denom > 0) {
@@ -859,7 +902,6 @@
                 $('pb-hard').style.width = `${(s.hard / denom * 100).toFixed(1)}%`;
             }
 
-            // Update focus tip
             renderFocusTip(s, streak);
         }
 
@@ -904,7 +946,6 @@
             }).join('');
         }
 
-        // ─── Daily problem ────────────────────────────────────────────────────────────
         async function loadDailyProblem() {
             const prob = await window.lc.getDailyProblem();
             const card = $('daily-card');
@@ -933,20 +974,43 @@
   `;
         }
 
-        // ─── Company prep ─────────────────────────────────────────────────────────────
         async function loadCompanyProblems(company) {
             const list = $('company-list');
+            const searchBar = $('company-search');
             if (!company) {
                 list.innerHTML = '<p class="empty-hint">Select a company to see top interview problems</p>';
+                searchBar.style.display = 'none';
+                searchBar.value = '';
+                companyRealProblems = [];
+                companySuggestedProblems = [];
                 return;
             }
             list.innerHTML = '<p class="empty-hint">Loading…</p>';
-            const probs = await window.lc.getCompanyProblems(company);
-            if (!probs.length) {
-                list.innerHTML = '<p class="empty-hint">No suggested problems found for this company.</p>';
+            searchBar.style.display = 'none';
+
+            const data = await window.lc.getCompanyProblems(company);
+            companyRealProblems = data.real ?? [];
+            companySuggestedProblems = data.suggested ?? [];
+
+            searchBar.style.display = '';
+            searchBar.value = '';
+            renderCompanyList('');
+        }
+
+        function renderCompanyList(query) {
+            const list = $('company-list');
+            const q = query.toLowerCase().trim();
+            const filter = probs => q ? probs.filter(p => p.title.toLowerCase().includes(q)) : probs;
+
+            const real = filter(companyRealProblems);
+            const suggested = filter(companySuggestedProblems);
+
+            if (!real.length && !suggested.length) {
+                list.innerHTML = `<p class="empty-hint">${q ? 'No matching problems found.' : 'No problems found for this company.'}</p>`;
                 return;
             }
-            list.innerHTML = probs.map((p, i) => {
+
+            const renderProbs = probs => probs.map((p, i) => {
                 const diff = p.difficulty ?? 'Unknown';
                 const dClass = `diff-${diff.toLowerCase()}`;
                 const url = `https://leetcode.com/problems/${p.titleSlug}/`;
@@ -955,9 +1019,20 @@
       <span class="diff-badge ${dClass}">${diff}</span>
     </div>`;
             }).join('');
+
+            const parts = [];
+            if (real.length) {
+                parts.push(`<div class="section-header">🏢 Real Company Questions <span class="count-badge">${real.length}</span></div>`);
+                parts.push(renderProbs(real));
+            }
+            if (suggested.length) {
+                if (real.length) parts.push('<div class="section-divider"></div>');
+                parts.push(`<div class="section-header">🤖 AI Suggested <span class="count-badge">${suggested.length}</span></div>`);
+                parts.push(renderProbs(suggested));
+            }
+            list.innerHTML = parts.join('');
         }
 
-        // ─── Streak calculation (mirrors main.js logic) ───────────────────────────────
         function calcStreak(submissions) {
             if (!submissions.length) return 0;
             const DAY = 86_400_000;
@@ -974,7 +1049,6 @@
             return streak;
         }
 
-        // ─── Utilities ────────────────────────────────────────────────────────────────
         function $(id) { return document.getElementById(id); }
         function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
         function escHtml(str) {
@@ -998,8 +1072,6 @@
         }
         function goTo(url) { window.lc.openUrl(url); }
 
-        // ─── Wire up controls ─────────────────────────────────────────────────────────
-        // Tab switching
         document.querySelectorAll('.tab').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1009,9 +1081,12 @@
             });
         });
 
-        // Company selector
         $('company-sel').addEventListener('change', e => {
             loadCompanyProblems(e.target.value);
+        });
+
+        $('company-search').addEventListener('input', e => {
+            renderCompanyList(e.target.value);
         });
 
         // Refresh button
@@ -1029,7 +1104,6 @@
             }
         });
 
-        // Settings toggle
         $('btn-settings').addEventListener('click', () => {
             $('settings-overlay').classList.remove('hidden');
         });
@@ -1038,7 +1112,6 @@
             setText('settings-msg', '');
         });
 
-        // Save username
         $('btn-save-user').addEventListener('click', async () => {
             const input = $('username-input');
             const msg = $('settings-msg');
@@ -1069,17 +1142,14 @@
             }
         });
 
-        // Enter key in username input
         $('username-input').addEventListener('keydown', e => {
             if (e.key === 'Enter') $('btn-save-user').click();
         });
 
-        // Open LeetCode profile
         $('btn-open-web').addEventListener('click', () => window.lc.openWebApp());
         // Open local web tracker
         $('btn-open-tracker').addEventListener('click', () => window.lc.openTracker());
 
-        // ─── Boot ─────────────────────────────────────────────────────────────────────
         window.addEventListener('load', init);
     </script>
 </body>
