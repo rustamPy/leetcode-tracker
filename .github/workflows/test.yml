@@ -22,14 +22,14 @@ jobs:
         run: pip install -r backend/requirements-dev.txt
 
       - name: Run tests
-        run: python -m pytest backend/tests/ -v --junitxml=reports/results.xml
+        run: python -m pytest backend/tests/ -v --html=reports/results.html
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
-          path: reports/results.xml
+          path: reports/results.html
           retention-days: 30
 
   frontend:
@@ -49,7 +49,7 @@ jobs:
         working-directory: frontend
 
       - name: Run tests
-        run: npx vitest run --reporter=default --reporter=junit --outputFile=reports/results.xml
+        run: npx vitest run --reporter=default --reporter=html
         working-directory: frontend
 
       - name: Upload test results
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
-          path: frontend/reports/results.xml
+          path: frontend/html/
           retention-days: 30
 
   menubar:
@@ -77,7 +77,7 @@ jobs:
         working-directory: menubar-app
 
       - name: Run tests
-        run: npm test -- --json --outputFile=reports/results.json
+        run: mkdir -p reports && npm test -- --json --outputFile=reports/results.json
         working-directory: menubar-app
 
       - name: Upload test results
