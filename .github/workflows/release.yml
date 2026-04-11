@@ -107,9 +107,9 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            menubar-app/dist/LeetCode Tracker-*-arm64.dmg
-            menubar-app/dist/LeetCode Tracker-*-arm64-mac.zip
-            menubar-app/dist/LeetCode Tracker-*-x64.dmg
-            menubar-app/dist/LeetCode Tracker-*-x64-mac.zip
+            menubar-app/dist/LeetCode.Tracker-*-arm64.dmg
+            menubar-app/dist/LeetCode.Tracker-*-arm64-mac.zip
+            menubar-app/dist/LeetCode.Tracker-*-x64.dmg
+            menubar-app/dist/LeetCode.Tracker-*-x64-mac.zip
             menubar-app/assets/Remove Quarantine.command
 
