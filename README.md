@@ -1,203 +1,287 @@
-# LeetCode Tracker
+<div align="center">
+  <img src="menubar-app/assets/icon-source.png" alt="LeetCode Tracker" width="120" />
 
-A personal Kanban board for tracking LeetCode progress — browse problems by company, search across the full problem set, view problem descriptions in a side drawer, and see your recent accepted submissions automatically.
+  <h1>LeetCode Tracker</h1>
+
+  <p><em>Because your browser already has 47 tabs open. This lives in your menu bar instead.</em></p>
+
+  [![Release](https://img.shields.io/github/v/release/rustamPy/leetcode-tracker?label=latest&color=black)](https://github.com/rustamPy/leetcode-tracker/releases/latest)
+  [![License](https://img.shields.io/github/license/rustamPy/leetcode-tracker?color=black)](LICENSE)
+  [![Platform](https://img.shields.io/badge/platform-macOS-black)](https://github.com/rustamPy/leetcode-tracker/releases/latest)
+  [![Live Demo](https://img.shields.io/badge/live-demo-black)](https://rustampy.github.io/leetcode-tracker/)
+
+</div>
+
+---
+
+## The Origin Story — or: How Desperation Becomes Software
+
+It was a perfectly normal evening. I was staring at a LeetCode problem, a half-eaten bag of chips beside me, two cold coffees on the desk, and a growing sense that I had solved this exact tree problem before — somewhere, at some point, in a previous life.
+
+I opened my LeetCode submissions page. Then another tab to check company problems. Then a Notion page to paste the link. Then accidentally closed the wrong tab. Then reopened everything. Stared at the ceiling.
+
+*"There has to be a better way,"* I said to no one, because it was 1 AM.
+
+The next morning, LeetCode Tracker existed. A Kanban board. A company browser. Problem descriptions without leaving the app. Recent submissions pulled in automatically. And then, because the browser was still failing me — a **menu bar app**, so the whole thing lives at the top of the screen, one click away, always watching, silently judging how many days you've skipped.
+
+The menu bar app was the final boss. It whispered: *"You already have a web app. Why do you need a desktop app?"* And the answer was: because sometimes you just want to glance at your streak without opening a browser, okay? Let a person live.
+
+Is it overkill? Absolutely. Does it spark joy? Mysteriously, yes.
+
+---
+
+## What It Does
+
+A Kanban board for your LeetCode grind, a company problem browser, an ML-powered suggestion engine, and a macOS menu bar app — all in one place.
+
+| Feature | Description |
+|---------|-------------|
+| **Kanban board** | To Do / In Progress / Completed columns, stored locally |
+| **Auto-completed column** | Pulls your accepted submissions from LeetCode automatically |
+| **Company browser** | Filter 3,600+ problems by company |
+| **Problem search** | Instant search — no network call, just fast |
+| **Problem drawer** | Description, topic tags, and hints without leaving the page |
+| **Streak & stats** | Daily streak, acceptance rate, recent submissions |
+| **ML suggestions** | "Suggested by similarity" — problems ranked by cosine similarity to a company's problem set |
+| **Menu bar app** | Everything above, accessible from your macOS menu bar |
 
 **Live demo:** https://rustampy.github.io/leetcode-tracker/
 
 ---
 
-## Features
-
-- **Kanban board** — To Do / In Progress / Completed columns, stored in `localStorage`
-- **Completed column** — auto-populated from your LeetCode accepted submissions via GraphQL
-- **Company browser** — filter problems by company from a curated dataset
-- **Problem search** — instant search across all 3,600+ problems (local, no network call)
-- **Problem drawer** — description, topic tags, and hints fetched via LeetCode GraphQL
-- **Username switching** — change the tracked account at runtime; data is cached indefinitely (localStorage)
-- **ML problem suggestions** — "Suggested by similarity" section in the company browser, powered by a content-based model trained on topics, difficulty, and problem descriptions
-
----
-
 ## macOS Menu Bar App
 
-A native menu bar app is available alongside the web app — streak counter, daily problem, company prep, and recent submissions, all from your menu bar.
+The star of the show. Lives quietly in your macOS menu bar, patiently waiting for you while you "take a quick break" that lasts two hours.
 
-### Install via Homebrew (recommended)
+### Option A — Homebrew (the easy way)
 
 ```bash
 brew tap rustamPy/tap
 brew install --cask leetcode-tracker
 ```
 
-Homebrew automatically removes the macOS quarantine flag, so the app opens without any "damaged" or security warning.
+That's it. Homebrew handles everything, including the macOS security warnings that would otherwise haunt you.
 
-### Install manually
+### Option B — Manual Download
 
-Download the `.dmg` for your Mac from the [latest release](https://github.com/rustamPy/leetcode-tracker/releases/latest):
+1. Go to the [latest release](https://github.com/rustamPy/leetcode-tracker/releases/latest)
+2. Download the right file for your Mac:
 
-| File | Platform |
-|------|----------|
-| `LeetCode Tracker-*-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) |
-| `LeetCode Tracker-*-x64.dmg` | Intel Mac |
+| File | Who it's for |
+|------|-------------|
+| `LeetCode.Tracker-*-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) — if you bought your Mac after 2020, this is you |
+| `LeetCode.Tracker-*-x64.dmg` | Intel Mac — if your Mac makes fan noises during Zoom calls, this is you |
 
-After dragging the app to `/Applications`, run once to clear Gatekeeper's quarantine flag:
+3. Open the `.dmg`, drag the app to `/Applications`
+4. macOS will refuse to open it — this is expected, not a disaster
 
+**Fix the "app is damaged" warning** (it's not damaged, macOS is just overprotective):
+
+Run this once in Terminal:
 ```bash
-xattr -dr com.apple.quarantine "/Applications/LeetCode Tracker.app"
+find "/Applications/LeetCode Tracker.app" -exec xattr -d com.apple.quarantine {} \; 2>/dev/null; true
 ```
 
-Or double-click the `Remove Quarantine.command` file included in the release.
+Or double-click the `Remove Quarantine.command` file inside the `.dmg` — it does the same thing with less typing.
 
-### Update
+### Updating
 
 ```bash
+# If you installed via Homebrew:
 brew upgrade --cask leetcode-tracker
+
+# If you installed manually:
+download the new .dmg and repeat the steps above
 ```
 
 ---
 
-## Architecture
+## Web App — Running Locally
 
-```
-frontend/   React + Vite (GitHub Pages static site)
-backend/    FastAPI (local dev only — proxies LeetCode API, manages tasks)
-cloudflare-worker/   Cloudflare Worker — GraphQL proxy for production
-scripts/    Build-time data scripts (run by GitHub Actions)
-```
+Want to run the full web app on your machine, or fork it for yourself? Here's how.
 
-### Data flow
+### What you need
 
-| Env | LeetCode GraphQL | Problem data | Tasks |
-|-----|-----------------|--------------|-------|
-| **Local dev** | Vite proxy → `leetcode.com/graphql` | `problemsData.json` (local) | FastAPI + `tasks.json` |
-| **Production** | Cloudflare Worker → `leetcode.com/graphql` | `problemsData.json` (bundled) | `localStorage` |
+- **Python 3.10+** — for the backend and data scripts
+- **Node.js 18+** — for the frontend
 
----
+### Step 1 — Build the data files
 
-## Local development
-
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-
-### 1. Build static data files
+These scripts generate the JSON files the app uses. Run them once before starting anything else:
 
 ```bash
-# Required once (or whenever you want to refresh)
-python3 scripts/fetch_user_data.py      # LeetCode profile → frontend/src/data/userData.json
-python3 scripts/build_company_data.py   # company-tagged problems → frontend/src/data/companyData.json
-python3 scripts/build_problems_data.py  # Leetcode.csv → frontend/src/data/problemsData.json
-python3 scripts/suggest_company_problems.py  # ML suggestions → appended to companyData.json
+python3 scripts/fetch_user_data.py       # your LeetCode profile stats
+python3 scripts/build_company_data.py    # company → problems mapping
+python3 scripts/build_problems_data.py   # full problem list from the CSV
+python3 scripts/suggest_company_problems.py  # ML similarity suggestions
 ```
 
-The last three scripts produce static JSON that is committed to the repo and bundled into the app at build time. Only `fetch_user_data.py` runs in CI (to refresh live stats on every deploy).
+> **Tracking a different account?**  
+> Open `scripts/fetch_user_data.py` and `backend/main.py`, change the `USERNAME` value to your LeetCode handle, then run the scripts above.
 
-To track your own account, change `USERNAME` in `scripts/fetch_user_data.py` and `backend/main.py` before running.
+The first three scripts output static JSON files that are bundled into the app at build time. `fetch_user_data.py` also runs in CI on every push to keep your live stats current.
 
-### 2. Start the backend
+### Step 2 — Start the backend
 
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
-# runs on http://localhost:8000
+# now running at http://localhost:8000
 ```
 
-### 3. Start the frontend
+The backend is only needed for local development — it handles task storage and proxies LeetCode's API so your browser doesn't get blocked by CORS.
+
+### Step 3 — Start the frontend
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# runs on http://localhost:5173
+# now running at http://localhost:5173
 ```
 
-The Vite dev server proxies `/api/*` to the FastAPI backend and `/lc-graphql` to `leetcode.com/graphql`, so no CORS issues.
+Open `http://localhost:5173` and you're in. The dev server automatically routes API calls to the backend and LeetCode GraphQL calls through its built-in proxy.
 
 ---
 
-## Deploying to GitHub Pages
+## Deploying Your Own Fork to GitHub Pages
 
-### 1. Deploy the Cloudflare Worker (one-time setup)
+Want your own live version? Four steps.
 
-The frontend needs a proxy to call LeetCode's GraphQL API from the browser in production. A free Cloudflare Worker handles this.
+### Step 1 — Deploy the Cloudflare Worker
+
+The live site needs a proxy to talk to LeetCode's API from the browser. Cloudflare Workers are free and perfect for this.
 
 ```bash
 cd cloudflare-worker
 npx wrangler login
 npx wrangler deploy
-# outputs: https://lc-graphql-proxy.<your-subdomain>.workers.dev
+# copy the output URL — you'll need it in a moment
 ```
 
-Or paste `cloudflare-worker/worker.js` directly into the [Cloudflare dashboard](https://dash.cloudflare.com) under **Workers & Pages → Create Worker**.
+Alternatively, paste `cloudflare-worker/worker.js` directly into the [Cloudflare dashboard](https://dash.cloudflare.com) under **Workers & Pages → Create Worker**.
 
-Update `ALLOWED_ORIGIN` in `cloudflare-worker/worker.js` to match your GitHub Pages URL before deploying.
+Before deploying, open `cloudflare-worker/worker.js` and update `ALLOWED_ORIGIN` to match your GitHub Pages URL (e.g. `https://yourusername.github.io`).
 
-### 2. Add the Worker URL as a GitHub secret
+### Step 2 — Add the Worker URL to GitHub Secrets
 
-In your repo: **Settings → Secrets and variables → Actions → New repository secret**
+In your repo on GitHub: **Settings → Secrets and variables → Actions → New repository secret**
 
 | Name | Value |
 |------|-------|
-| `VITE_GQL_PROXY` | `https://lc-graphql-proxy.<your-subdomain>.workers.dev` |
+| `VITE_GQL_PROXY` | The Worker URL from Step 1 |
 
-### 3. Push to `main`
+### Step 3 — Push to `main`
 
-GitHub Actions will:
-1. Fetch your LeetCode profile (`scripts/fetch_user_data.py`)
-2. Build the Vite app (with `VITE_GQL_PROXY` baked in)
-3. Deploy to GitHub Pages
+GitHub Actions takes over from here:
+1. Fetches your LeetCode profile stats
+2. Builds the Vite app with your Worker URL baked in
+3. Deploys everything to GitHub Pages
 
-The company data, problem list, and ML suggestions are **pre-built locally and committed** — they don't re-run in CI.
+The problem list, company data, and ML suggestions are pre-generated locally and committed to the repo — they don't regenerate in CI (that would take forever).
 
-The site auto-rebuilds daily at 06:00 UTC to refresh your stats.
+### Step 4 — Relax
 
----
-
-## Changing the default tracked user
-
-1. Edit `USERNAME` in `scripts/fetch_user_data.py`
-2. Edit `USERNAME` in `backend/main.py`
-3. Commit and push — the Actions build will regenerate `userData.json`
-
-Users can also switch accounts at runtime via the **account button** in the profile card. The new username is persisted in `localStorage` and a cookie.
+Your site rebuilds automatically every day at 06:00 UTC to refresh your stats. You don't have to do anything.
 
 ---
 
-## ML similarity model
+## How the ML Suggestions Work
 
-When you browse a company's problems, a **"Suggested by similarity"** section appears below the known problems. These are ranked by cosine similarity to the centroid of that company's problem set.
+When you browse a company in the app, you'll see a **"Suggested by similarity"** section below the known problems. These aren't random — they're ranked by how similar they are to that company's typical problem style.
 
-### Features
+Each problem is represented as a vector combining:
 
 | Feature | Weight | Details |
 |---------|--------|---------|
-| Topic tags | ×3 | Multi-hot encoded across 72 unique topics |
-| Difficulty | ×1 | One-hot (Easy / Medium / Hard) |
-| Problem description | ×2 | TF-IDF (3,000 terms, sublinear TF, L2-normalised) |
+| Topic tags | ×3 | Multi-hot encoded across 72 topics |
+| Difficulty | ×1 | Easy / Medium / Hard |
+| Problem description | ×2 | TF-IDF over 3,000 terms |
 
-All features are stacked into a single sparse matrix and similarity is computed via cosine similarity against each company's centroid.
+The app computes a centroid for each company's known problems, then ranks all other problems by cosine similarity to that centroid. The closer the problem, the more it "fits" that company's style.
 
-### Rebuilding suggestions
+### Refreshing the suggestions locally
 
 ```bash
-# First run: fetches ~3,600 descriptions from LeetCode GraphQL (takes ~10 min)
-# Subsequent runs: uses local cache at scripts/.desc_cache.json (fast)
+# First run fetches ~3,600 descriptions from LeetCode (takes ~10 min)
+# Subsequent runs use a local cache and are fast
 python3 scripts/suggest_company_problems.py
 git add frontend/src/data/companyData.json && git commit -m "refresh ML suggestions"
 ```
 
 ---
 
+## Project Structure
+
+```
+frontend/            React + Vite — the web app (deployed to GitHub Pages)
+backend/             FastAPI — local dev only, handles tasks and proxies
+cloudflare-worker/   Cloudflare Worker — GraphQL proxy for production
+menubar-app/         Electron — the macOS menu bar app
+scripts/             Data generation scripts (Python)
+leets/               Raw LeetCode CSV problem dataset
+```
+
+### How data flows
+
+| Where | LeetCode GraphQL | Problem data | Tasks |
+|-------|-----------------|--------------|-------|
+| Local dev | Vite proxy → `leetcode.com/graphql` | `problemsData.json` (local file) | FastAPI + `tasks.json` |
+| Production | Cloudflare Worker → `leetcode.com/graphql` | `problemsData.json` (bundled at build) | `localStorage` |
+
+---
+
+## For Contributors
+
+Found a bug? Have an idea? Want to make this even more unnecessarily feature-rich? Welcome.
+
+### Getting set up
+
+1. Fork the repo
+2. Clone your fork
+3. Follow the **Local development** steps above
+4. Create a branch: `git checkout -b my-feature`
+5. Make your changes
+6. Open a pull request
+
+### A few things worth knowing
+
+- The frontend is React + Vite. Components live in `frontend/src/components/`.
+- The menu bar app is Electron. Its main process is `menubar-app/main.js`.
+- Data scripts are in `scripts/`. They're Python and meant to be run manually, not in CI (except `fetch_user_data.py`).
+- There are no tests yet. (I know. I know.)
+- `companyData.json` and `problemsData.json` are large generated files — don't edit them by hand.
+
+### Building the menu bar app locally
+
+```bash
+cd menubar-app
+npm install
+npm start          # run in development mode
+npm run build      # build without packaging (for testing)
+npm run dist       # build and package as .dmg (both architectures)
+npm run dist:arm64 # Apple Silicon only
+npm run dist:x64   # Intel only
+```
+
+---
+
 ## Acknowledgements
 
-Problem dataset sourced from the CSV compiled by **Ashutosh Papnoi**:
-[Latest Complete LeetCode Problems Dataset 2025](https://www.kaggle.com/datasets/ashutoshpapnoi/latest-complete-leetcode-problems-dataset-2025) — thank you for keeping it up to date!
+This project stands on the shoulders of people who did the tedious data work so no one else had to:
 
-Company-wise problem lists sourced from the [liquidslr/interview-company-wise-problems](https://github.com/liquidslr/interview-company-wise-problems) repository.
+- **Ashutosh Papnoi** — compiled and maintains the LeetCode problem dataset used here:  
+  [Latest Complete LeetCode Problems Dataset 2025](https://www.kaggle.com/datasets/ashutoshpapnoi/latest-complete-leetcode-problems-dataset-2025)
 
-The repository provided by Gaurav Kumar and Snehasish Roy contains a comprehensive mapping of LeetCode problems to companies, which is invaluable for the company browser feature. The data is accessed via their GitHub API and raw content URLs, as shown below:
+- **Gaurav Kumar & Snehasish Roy** — built and maintain the company-wise problem mappings that power the company browser:  
+  [liquidslr/interview-company-wise-problems](https://github.com/liquidslr/interview-company-wise-problems)  
+  [snehasishroy/leetcode-companywise-interview-questions](https://github.com/snehasishroy/leetcode-companywise-interview-questions)
 
-1. https://api.github.com/repos/liquidslr/interview-company-wise-problems/contents
-2. https://api.github.com/repos/snehasishroy/leetcode-companywise-interview-questions/contents
+Without their work, the company browser would just be a blank page with good intentions.
+
+---
+
+<div align="center">
+  <sub>Built at 1 AM out of spite. Maintained with slightly more dignity.</sub>
+</div>
