@@ -589,6 +589,27 @@
             white-space: nowrap;
         }
 
+        .prob-premium {
+            font-size: 12px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .prob-done-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(0, 184, 163, 0.18);
+            color: var(--easy);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .prob-row--done .prob-title {
+            opacity: 0.55;
+        }
+
         /* ── Settings overlay ───────────────────────────────────────────────── */
         .settings-overlay {
             position: absolute;
@@ -998,8 +1019,11 @@
             const q = query.toLowerCase().trim();
             const filter = probs => q ? probs.filter(p => p.title.toLowerCase().includes(q)) : probs;
 
-            const real = filter(companyRealProblems);
-            const suggested = filter(companySuggestedProblems);
+            const solvedSlugs = new Set((appData?.submissions ?? []).map(s => s.titleSlug));
+            const sortDone = probs => [...probs].sort((a, b) => (solvedSlugs.has(b.titleSlug) ? 1 : 0) - (solvedSlugs.has(a.titleSlug) ? 1 : 0));
+
+            const real = sortDone(filter(companyRealProblems));
+            const suggested = sortDone(filter(companySuggestedProblems));
 
             if (!real.length && !suggested.length) {
                 list.innerHTML = `<p class="empty-hint">${q ? 'No matching problems found.' : 'No problems found for this company.'}</p>`;
@@ -1010,8 +1034,11 @@
                 const diff = p.difficulty ?? 'Unknown';
                 const dClass = `diff-${diff.toLowerCase()}`;
                 const url = `https://leetcode.com/problems/${p.titleSlug}/`;
-                return `<div class="prob-row" onclick="goTo('${url}')">
+                const done = solvedSlugs.has(p.titleSlug);
+                return `<div class="prob-row${done ? ' prob-row--done' : ''}" onclick="goTo('${url}')">
       <span class="prob-title">${i + 1}. ${escHtml(p.title)}</span>
+      ${p.premium ? '<span class="prob-premium" title="Premium problem">★</span>' : ''}
+      ${done ? '<span class="prob-done-badge">✓ Done</span>' : ''}
       <span class="diff-badge ${dClass}">${diff}</span>
     </div>`;
             }).join('');
