@@ -1,0 +1,91 @@
+name: Release macOS App
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on v1.0.0, v1.2.3, etc.
+
+permissions:
+  contents: write   # needed to create GitHub releases and upload assets
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Node ─────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: menubar-app/package-lock.json
+
+      # ── 3. Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
+        working-directory: menubar-app
+        run: npm ci
+
+      # ── 4. Sync data files + generate icons ────────────────────────────────
+      - name: Setup (data + icons)
+        working-directory: menubar-app
+        run: npm run setup && npm run build:icon
+
+      # ── 5. Build arm64 DMG + zip ───────────────────────────────────────────
+      - name: Build arm64 (Apple Silicon)
+        working-directory: menubar-app
+        env:
+          # electron-builder reads this to skip code signing on CI
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --mac --arm64
+
+      # ── 6. Build x64 DMG + zip (Intel) ────────────────────────────────────
+      - name: Build x64 (Intel)
+        working-directory: menubar-app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --mac --x64
+
+      # ── 7. Extract version from tag ────────────────────────────────────────
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      # ── 8. Create GitHub release and upload artifacts ──────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "LeetCode Tracker ${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## 🔥 LeetCode Tracker ${{ steps.version.outputs.VERSION }}
+
+            macOS menu bar app — track your LeetCode progress, prep for company interviews, and get a daily problem suggestion right from your menu bar.
+
+            ### Install
+
+            | Download | Platform |
+            |---|---|
+            | **LeetCode.Tracker-${{ steps.version.outputs.VERSION }}-arm64.dmg** | Apple Silicon (M1/M2/M3/M4) |
+            | **LeetCode.Tracker-${{ steps.version.outputs.VERSION }}-x64.dmg** | Intel Mac |
+            | `*-mac.zip` | App bundle (drag to Applications) |
+
+            ### First run
+            macOS will quarantine the app since it's not notarized. Right-click → **Open** on first launch to bypass the Gatekeeper warning.
+
+            ### Features
+            - 🔥 Streak counter in the menu bar
+            - 📅 Daily problem suggestion
+            - 🏢 Company interview prep (filter by company)
+            - ⏱ Recent submissions
+            - ↺ Live data refresh from LeetCode
+          draft: false
+          prerelease: false
+          files: |
+            menubar-app/dist/LeetCode Tracker-*-arm64.dmg
+            menubar-app/dist/LeetCode Tracker-*-arm64-mac.zip
+            menubar-app/dist/LeetCode Tracker-*-x64.dmg
+            menubar-app/dist/LeetCode Tracker-*-x64-mac.zip

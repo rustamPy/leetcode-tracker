@@ -1,0 +1,62 @@
+{
+  "name": "leetcode-tracker",
+  "version": "1.0.0",
+  "description": "LeetCode Tracker — macOS menu bar app",
+  "author": "Rustam Karimov",
+  "main": "main.js",,
+  "scripts": {
+    "setup": "node scripts/sync-data.js && node scripts/create-icon.js",
+    "start": "electron .",
+    "build:icon": "node scripts/create-icns.js",
+    "build": "npm run setup && npm run build:icon && electron-builder --mac --dir",
+    "dist:arm64": "npm run setup && npm run build:icon && electron-builder --mac --arm64",
+    "dist:x64":   "npm run setup && npm run build:icon && electron-builder --mac --x64",
+    "dist": "npm run setup && npm run build:icon && electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.rustam.leetcode-tracker",
+    "productName": "LeetCode Tracker",
+    "copyright": "Copyright © 2026 Rustam Karimov",
+    "mac": {
+      "target": [
+        { "target": "dmg",  "arch": ["arm64"] },
+        { "target": "zip",  "arch": ["arm64"] }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "extendInfo": {
+        "LSUIElement": "1",
+        "NSHumanReadableCopyright": "Copyright © 2026 Rustam Karimov"
+      }
+    },
+    "dmg": {
+      "title": "LeetCode Tracker",
+      "background": null,
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ],
+      "window": { "width": 540, "height": 380 }
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "assets/**",
+      "data/**"
+    ],
+    "extraResources": [
+      { "from": "data/", "to": "data/" }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "rustamPy",
+      "repo": "leetcode-tracker",
+      "releaseType": "release"
+    }
+  }
+}

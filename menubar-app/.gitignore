@@ -1,0 +1,6 @@
+node_modules/
+dist/
+data/
+assets/tray-icon.png
+assets/tray-icon@2x.png
+assets/icon.icns
