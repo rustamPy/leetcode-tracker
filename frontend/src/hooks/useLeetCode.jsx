@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
-import { fetchUserData, clearCacheForUser, clearAllCache } from "../services/leetcodeAPI";
+import { fetchUserData, clearCacheForUser, clearAllCache, fetchSessionUsername, getSession } from "../services/leetcodeAPI";
 import { setCookie, getCookie, clearAllLCCookies, getLCCookieNames } from "../services/cookieUtils";
 import fallback from "../data/userData.json";
 
@@ -42,6 +42,7 @@ export function LCProvider({ children }) {
   const [error, setError] = useState(null);
   const [cachedAt, setCachedAt] = useState(null);
   const [fromCache, setFromCache] = useState(false);
+  const [sessionUser, setSessionUser] = useState(null);
 
   const load = useCallback(async (user, force = false) => {
     setLoading(true);
@@ -62,6 +63,10 @@ export function LCProvider({ children }) {
     } finally {
       setLoading(false);
     }
+
+    // Check whose session this is (runs whether or not data fetch succeeded)
+    const su = await fetchSessionUsername();
+    setSessionUser(su);
   }, []);
 
   useEffect(() => { load(username); }, [username, load]);
@@ -77,10 +82,18 @@ export function LCProvider({ children }) {
     clearAllLCCookies();
   }, []);
 
+  // Re-query session owner without a full data refresh (called after saving a new session token)
+  const recheckSession = useCallback(async () => {
+    const su = await fetchSessionUsername();
+    setSessionUser(su);
+  }, []);
+
+  const sessionMismatch = sessionUser != null && sessionUser.toLowerCase() !== username.toLowerCase();
+
   const cookieNames = getLCCookieNames();
 
   return (
-    <LCContext.Provider value={{ username, data, loading, error, cachedAt, fromCache, changeUsername, refresh, clearCache, clearCookies, cookieNames }}>
+    <LCContext.Provider value={{ username, data, loading, error, cachedAt, fromCache, changeUsername, refresh, clearCache, clearCookies, cookieNames, sessionUser, sessionMismatch, recheckSession }}>
       {children}
     </LCContext.Provider>
   );

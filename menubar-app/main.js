@@ -135,6 +135,12 @@ ipcMain.handle('get-company-problems', (_, company) => {
     const problems = data.problems ?? {};
     const suggestedMap = data.suggested ?? {};
 
+    let allProblems = problems;
+    try {
+        const pd = dataFile('problemsData.json');
+        if (pd) allProblems = { ...JSON.parse(fs.readFileSync(pd, 'utf-8')), ...problems };
+    } catch { }
+
     const real = Object.entries(problems)
         .filter(([, p]) => Array.isArray(p.companies) && p.companies.includes(company))
         .map(([slug, p]) => ({ ...p, titleSlug: slug }));
@@ -143,7 +149,7 @@ ipcMain.handle('get-company-problems', (_, company) => {
     const suggested = (suggestedMap[company] ?? [])
         .filter(slug => !realSlugs.has(slug))
         .slice(0, 200)
-        .map(slug => ({ ...problems[slug], titleSlug: slug }))
+        .map(slug => ({ ...allProblems[slug], titleSlug: slug }))
         .filter(p => p && p.title);
 
     return { real, suggested };
@@ -172,6 +178,30 @@ ipcMain.handle('save-username', (_, username) => {
     return true;
 });
 
+ipcMain.handle('get-session', () => getStoredSession());
+
+ipcMain.handle('save-session', (_, token) => {
+    try {
+        if (typeof token !== 'string') return false;
+        // Only allow characters valid in a cookie value (no semicolons, spaces, etc.)
+        const clean = token.trim();
+        if (clean && !/^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/.test(clean)) return false;
+        if (clean) fs.writeFileSync(sessionFile(), clean, 'utf-8');
+        else if (fs.existsSync(sessionFile())) fs.unlinkSync(sessionFile());
+        return true;
+    } catch { return false; }
+});
+
+// Returns the LeetCode username the stored session token belongs to, or null.
+ipcMain.handle('get-session-username', async () => {
+    const session = getStoredSession();
+    if (!session) return null;
+    try {
+        const data = await gqlRequest('query { userStatus { username } }', {});
+        return data?.userStatus?.username ?? null;
+    } catch { return null; }
+});
+
 ipcMain.on('open-url', (_, url) => {
     if (isSafeLeetCodeUrl(url)) shell.openExternal(url);
 });
@@ -182,7 +212,10 @@ ipcMain.on('open-webapp', () => {
 });
 
 ipcMain.on('open-tracker', () => {
-    shell.openExternal('https://rustampy.github.io/leetcode-tracker/');
+    const session = getStoredSession();
+    const base = 'https://rustampy.github.io/leetcode-tracker/';
+    const url = session ? `${base}#lc-session=${encodeURIComponent(session)}` : base;
+    shell.openExternal(url);
 });
 
 function isSafeLeetCodeUrl(url) {
@@ -215,9 +248,52 @@ query GetSubs($u: String!, $limit: Int!) {
   }
 }`;
 
+// Authenticated query — requires LEETCODE_SESSION cookie.
+// userProgressQuestionList(questionStatus: SOLVED) returns every problem
+// the authenticated user has accepted. Pagination via skip/limit inside filters.
+// Query shape confirmed via LeetCode GraphQL introspection.
+const GQL_ALL_AC = `
+query GetAllSolved($skip: Int!, $limit: Int!) {
+  userProgressQuestionList(filters: {
+    questionStatus: SOLVED
+    skip: $skip
+    limit: $limit
+    sortField: LAST_SUBMITTED_AT
+    sortOrder: DESCENDING
+  }) {
+    totalNum
+    questions { title titleSlug lastSubmittedAt }
+  }
+}`;
+
+async function fetchAllAcSubmissions() {
+    const PAGE = 100;
+    const seen = new Map();
+    let skip = 0;
+    for (let guard = 0; guard < 200; guard++) {
+        const data = await gqlRequest(GQL_ALL_AC, { skip, limit: PAGE });
+        const list = data?.userProgressQuestionList?.questions ?? [];
+        for (const q of list) {
+            if (!seen.has(q.titleSlug)) {
+                seen.set(q.titleSlug, {
+                    title: q.title,
+                    titleSlug: q.titleSlug,
+                    timestamp: q.lastSubmittedAt ?? '0',
+                    lang: '',
+                });
+            }
+        }
+        const total = data?.userProgressQuestionList?.totalNum ?? 0;
+        if (!list.length || seen.size >= total) break;
+        skip += PAGE;
+    }
+    return [...seen.values()];
+}
+
 function gqlRequest(query, variables) {
     return new Promise((resolve, reject) => {
         const body = JSON.stringify({ query, variables });
+        const session = getStoredSession();
         const req = https.request(
             {
                 hostname: 'leetcode.com',
@@ -229,6 +305,7 @@ function gqlRequest(query, variables) {
                     'User-Agent': 'Mozilla/5.0 LC-Tracker-MenuBar/1.0',
                     'Referer': 'https://leetcode.com',
                     'Origin': 'https://leetcode.com',
+                    ...(session ? { 'Cookie': `LEETCODE_SESSION=${session}` } : {}),
                 },
             },
             res => {
@@ -251,13 +328,21 @@ function gqlRequest(query, variables) {
 }
 
 async function fetchLeetCodeData(username) {
-    const [profileData, subsData] = await Promise.all([
-        gqlRequest(GQL_PROFILE, { u: username }),
-        gqlRequest(GQL_SUBS, { u: username, limit: 100 }),
-    ]);
+    const session = getStoredSession();
+    const profileData = await gqlRequest(GQL_PROFILE, { u: username });
 
     const user = profileData?.matchedUser;
     if (!user) throw new Error(`User "${username}" not found on LeetCode`);
+
+    // With session: paginate submissionList (no cap, returns ALL accepted).
+    // Without session: recentAcSubmissionList is capped at ~20 by LeetCode regardless of limit.
+    let submissions;
+    if (session) {
+        submissions = await fetchAllAcSubmissions();
+    } else {
+        const subsData = await gqlRequest(GQL_SUBS, { u: username, limit: 100 });
+        submissions = subsData?.recentAcSubmissionList ?? [];
+    }
 
     const counts = user.submitStats?.acSubmissionNum ?? [];
     const byDiff = Object.fromEntries(counts.map(c => [c.difficulty, c.count]));
@@ -274,7 +359,7 @@ async function fetchLeetCodeData(username) {
         contest: profileData?.userContestRanking ?? {},
         badges: user.badges ?? [],
         activeBadge: user.activeBadge ?? null,
-        submissions: subsData?.recentAcSubmissionList ?? [],
+        submissions,
     };
 }
 
@@ -317,6 +402,17 @@ function usernameFile() {
     return path.join(app.getPath('userData'), 'username.txt');
 }
 
+function sessionFile() {
+    return path.join(app.getPath('userData'), 'session.txt');
+}
+
+function getStoredSession() {
+    try {
+        const f = sessionFile();
+        return fs.existsSync(f) ? fs.readFileSync(f, 'utf-8').trim() : '';
+    } catch { return ''; }
+}
+
 function getStoredUsername() {
     const f = usernameFile();
     if (fs.existsSync(f)) return fs.readFileSync(f, 'utf-8').trim();
@@ -341,6 +437,30 @@ function saveUserDataLocally(data) {
     try {
         const dir = app.getPath('userData');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        // Merge with previously saved submissions for the same user.
+        // LeetCode's public API caps recentAcSubmissionList at ~20 per fetch,
+        // so we accumulate slugs across refreshes rather than overwriting.
+        try {
+            const savedPath = path.join(dir, 'live-userData.json');
+            if (fs.existsSync(savedPath)) {
+                const prev = JSON.parse(fs.readFileSync(savedPath, 'utf-8'));
+                if (
+                    prev.username?.toLowerCase() === data.username?.toLowerCase() &&
+                    Array.isArray(prev.submissions) && prev.submissions.length
+                ) {
+                    const newSlugs = new Set((data.submissions ?? []).map(s => s.titleSlug));
+                    data = {
+                        ...data,
+                        submissions: [
+                            ...(data.submissions ?? []),
+                            ...prev.submissions.filter(s => !newSlugs.has(s.titleSlug)),
+                        ],
+                    };
+                }
+            }
+        } catch { }
+
         fs.writeFileSync(
             path.join(dir, 'live-userData.json'),
             JSON.stringify({ ...data, fetchedAt: new Date().toISOString() }),

@@ -813,6 +813,18 @@
                     <button id="btn-save-user" class="btn-save">Save</button>
                 </div>
                 <p id="settings-msg" class="settings-msg"></p>
+
+                <label class="settings-label" style="margin-top:10px">Session token <span
+                        style="font-weight:400;opacity:.55">(optional)</span></label>
+                <div class="settings-irow">
+                    <input id="session-input" class="settings-input" type="password"
+                        placeholder="LEETCODE_SESSION cookie value" autocomplete="off" spellcheck="false">
+                    <button id="btn-save-session" class="btn-save">Save</button>
+                </div>
+                <p style="font-size:.68rem;opacity:.5;margin:3px 0 6px">Unlocks full solve history · leetcode.com →
+                    DevTools → Application → Cookies</p>
+                <p id="session-msg" class="settings-msg"></p>
+
                 <button id="btn-close-settings" class="btn-done">Done</button>
             </div>
         </div>
@@ -857,6 +869,9 @@
 
             window.lc.getUsername().then(u => {
                 $('username-input').value = u ?? '';
+            });
+            window.lc.getSession().then(s => {
+                $('session-input').value = s ?? '';
             });
         }
 
@@ -1163,6 +1178,43 @@
         $('btn-open-web').addEventListener('click', () => window.lc.openWebApp());
         // Open local web tracker
         $('btn-open-tracker').addEventListener('click', () => window.lc.openTracker());
+
+        $('btn-save-session').addEventListener('click', async () => {
+            const token = $('session-input').value.trim();
+            const msg = $('session-msg');
+            msg.textContent = 'Saving…'; msg.className = 'settings-msg';
+            const ok = await window.lc.saveSession(token);
+            if (!ok) {
+                msg.textContent = 'Invalid token format.';
+                msg.className = 'settings-msg err';
+                return;
+            }
+            if (!token) {
+                msg.textContent = 'Session cleared.';
+                msg.className = 'settings-msg ok';
+                setTimeout(() => { msg.textContent = ''; msg.className = 'settings-msg'; }, 3000);
+                return;
+            }
+            // Check if the session belongs to the configured username
+            const [sessionUsername, storedUsername] = await Promise.all([
+                window.lc.getSessionUsername(),
+                window.lc.getUsername(),
+            ]);
+            if (sessionUsername && storedUsername &&
+                sessionUsername.toLowerCase() !== storedUsername.toLowerCase()) {
+                msg.textContent = `⚠ Session belongs to "${sessionUsername}" but app is set to "${storedUsername}". Log in to LeetCode as "${storedUsername}" and update your session.`;
+                msg.className = 'settings-msg err';
+                return;
+            }
+            msg.textContent = 'Session saved — fetching full history…';
+            msg.className = 'settings-msg ok';
+            const result = await window.lc.fetchUserData(storedUsername ?? await window.lc.getUsername());
+            if (!result.error) {
+                appData = result.userData;
+                renderAll(result.userData, result.fetchedAt);
+            }
+            setTimeout(() => { msg.textContent = ''; msg.className = 'settings-msg'; }, 4000);
+        });
 
         window.addEventListener('load', init);
     </script>
