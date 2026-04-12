@@ -39,8 +39,11 @@ jobs:
             echo "Tag v${{ steps.read.outputs.version }} is new — will release."
           fi
 
+  tests:
+    uses: ./.github/workflows/test.yml
+
   build-and-release:
-    needs: check-version
+    needs: [check-version, tests]
     if: needs.check-version.outputs.is_new == 'true'
     runs-on: macos-latest
 
