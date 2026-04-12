@@ -1,6 +1,6 @@
 {
   "name": "leetcode-tracker",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "LeetCode Tracker — macOS menu bar app",
   "author": "Rustam Karimov",
   "main": "main.js",

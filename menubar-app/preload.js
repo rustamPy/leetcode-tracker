@@ -5,6 +5,8 @@ let _dataUpdateCb = null;
 
 contextBridge.exposeInMainWorld('lc', {
     getCachedData: () => ipcRenderer.invoke('get-cached-data'),
+    getVersion: () => ipcRenderer.invoke('get-version'),
+    checkForUpdate: () => ipcRenderer.invoke('check-for-update'),
     fetchUserData: (username) => ipcRenderer.invoke('fetch-user-data', username),
     getCompanies: () => ipcRenderer.invoke('get-companies'),
     getCompanyProblems: (company) => ipcRenderer.invoke('get-company-problems', company),
@@ -25,5 +27,9 @@ contextBridge.exposeInMainWorld('lc', {
         if (_dataUpdateCb) ipcRenderer.removeListener('data-update', _dataUpdateCb);
         _dataUpdateCb = (_, payload) => fn(payload);
         ipcRenderer.on('data-update', _dataUpdateCb);
+    },
+
+    onUpdateAvailable: (fn) => {
+        ipcRenderer.once('update-available', (_, payload) => fn(payload));
     },
 });

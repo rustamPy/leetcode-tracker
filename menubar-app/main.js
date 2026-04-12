@@ -2,7 +2,7 @@
 
 const {
     app, BrowserWindow, Tray, ipcMain,
-    shell, nativeImage, screen,
+    shell, nativeImage, screen, Notification,
 } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -70,10 +70,19 @@ function createWindow() {
 
     win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+    // Fire update check only after renderer has loaded and registered its listener.
+    win.webContents.once('did-finish-load', () => {
+        checkForUpdate();
+    });
+
     if (process.env.NODE_ENV === 'development') {
-        const fs = require('fs');
-        fs.watch(path.join(__dirname, 'renderer', 'index.html'), () => {
+        const fsWatcher = require('fs');
+        fsWatcher.watch(path.join(__dirname, 'renderer', 'index.html'), () => {
             win.webContents.reloadIgnoringCache();
+        });
+        // Re-register update listener after hot-reload
+        win.webContents.on('did-finish-load', () => {
+            positionAndShow();
         });
     }
 
@@ -109,6 +118,38 @@ function positionAndShow() {
     win.focus();
     win.webContents.send('data-update', { userData, fetchedAt });
 }
+
+ipcMain.handle('get-version', () => app.getVersion());
+
+ipcMain.handle('check-for-update', () => new Promise(resolve => {
+    const current = app.getVersion();
+    const req = https.request(
+        {
+            hostname: 'api.github.com',
+            path: '/repos/rustamPy/leetcode-tracker/releases/latest',
+            method: 'GET',
+            headers: { 'User-Agent': 'LC-Tracker-MenuBar' },
+        },
+        res => {
+            let data = '';
+            res.on('data', c => { data += c; });
+            res.on('end', () => {
+                try {
+                    const latest = JSON.parse(data).tag_name?.replace(/^v/, '');
+                    if (!latest) { resolve({ updateAvailable: false }); return; }
+                    const updateAvailable = semverGt(latest, current);
+                    if (updateAvailable) {
+                        win?.webContents.send('update-available', { current, latest });
+                    }
+                    resolve({ updateAvailable, current, latest });
+                } catch { resolve({ updateAvailable: false }); }
+            });
+        },
+    );
+    req.setTimeout(10000, () => { req.destroy(); resolve({ updateAvailable: false }); });
+    req.on('error', () => resolve({ updateAvailable: false }));
+    req.end();
+}));
 
 ipcMain.handle('get-cached-data', () => ({ userData, fetchedAt }));
 
@@ -441,6 +482,48 @@ async function fetchLeetCodeData(username) {
         activeBadge: user.activeBadge ?? null,
         submissions,
     };
+}
+
+function checkForUpdate() {
+    const current = app.getVersion();
+    const req = https.request(
+        {
+            hostname: 'api.github.com',
+            path: '/repos/rustamPy/leetcode-tracker/releases/latest',
+            method: 'GET',
+            headers: { 'User-Agent': 'LC-Tracker-MenuBar' },
+        },
+        res => {
+            let data = '';
+            res.on('data', c => { data += c; });
+            res.on('end', () => {
+                try {
+                    const latest = JSON.parse(data).tag_name?.replace(/^v/, '');
+                    if (!latest || !semverGt(latest, current)) return;
+                    win?.webContents.send('update-available', { current, latest });
+                    if (Notification.isSupported()) {
+                        new Notification({
+                            title: 'LeetCode Tracker update available',
+                            body: `v${latest} is out. Run: brew upgrade --cask leetcode-tracker`,
+                        }).show();
+                    }
+                } catch { /* silent */ }
+            });
+        },
+    );
+    req.setTimeout(10000, () => req.destroy());
+    req.on('error', () => { /* silent */ });
+    req.end();
+}
+
+/** Returns true if version string a is strictly greater than b (semver major.minor.patch). */
+function semverGt(a, b) {
+    const parse = v => (v ?? '0').split('.').map(Number);
+    const [a1, a2, a3] = parse(a);
+    const [b1, b2, b3] = parse(b);
+    if (a1 !== b1) return a1 > b1;
+    if (a2 !== b2) return a2 > b2;
+    return a3 > b3;
 }
 
 function updateTrayTitle() {
