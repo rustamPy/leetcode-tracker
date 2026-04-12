@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:tokens": "node -e \"require('fs').copyFileSync('src/tokens.css', '../menubar-app/renderer/tokens.css')\"",
+    "sync:tokens": "node -e \"require('fs').copyFileSync('src/tokens.css', '../menubar-app/renderer/tokens.css')\""
   },
   "dependencies": {
     "react": "^19.2.4",
