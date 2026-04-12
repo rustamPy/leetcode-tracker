@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems, solvedSlugs } from "../services/api";
+import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems, solvedSlugs as staticSolvedSlugs } from "../services/api";
+import { useLeetCode } from "../hooks/useLeetCode";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
-function ProblemRow({ p, company, onAdd, suggested = false }) {
+function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
   const solved = solvedSlugs.has(p.titleSlug);
   return (
     <div className={`modal-row${suggested ? " modal-row--suggested" : ""}${solved ? " modal-row--solved" : ""}`}>
@@ -38,6 +39,11 @@ function ProblemRow({ p, company, onAdd, suggested = false }) {
 }
 
 export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
+  const { data: lcData } = useLeetCode();
+  const solvedSlugs = lcData?.submissions?.length
+    ? new Set(lcData.submissions.map(s => s.titleSlug))
+    : staticSolvedSlugs;
+
   const [mode, setMode] = useState("company");
   const [company, setCompany] = useState("");
   const [query, setQuery] = useState("");
@@ -142,7 +148,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <p className="modal-hint">No results</p>
           )}
           {visibleResults.map(p => (
-            <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} />
+            <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
           ))}
 
           {mode === "company" && company && visibleSuggested.length > 0 && (
@@ -151,7 +157,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
                 <span>Suggested by similarity · {visibleSuggested.length}</span>
               </div>
               {visibleSuggested.map(p => (
-                <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested />
+                <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
               ))}
             </>
           )}

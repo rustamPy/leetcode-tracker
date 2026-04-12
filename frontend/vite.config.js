@@ -18,6 +18,16 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/lc-graphql/, "/graphql"),
         secure: true,
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyReq, req) => {
+            // Convert x-lc-session header → Cookie so LeetCode auth works in dev
+            const session = req.headers["x-lc-session"];
+            if (session) {
+              proxyReq.setHeader("Cookie", `LEETCODE_SESSION=${session}`);
+              proxyReq.removeHeader("x-lc-session");
+            }
+          });
+        },
       },
     },
   },

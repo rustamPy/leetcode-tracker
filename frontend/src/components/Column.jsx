@@ -2,13 +2,12 @@ import { useState, useMemo } from "react";
 import TaskCard from "./TaskCard";
 
 const COL = {
-  completed: { label: "Completed", marker: "01", color: "#7c3aed" },
-  doing: { label: "In Progress", marker: "02", color: "#d97706" },
-  todo: { label: "To Do", marker: "03", color: "#1e40af" },
+  doing:  { label: "In Progress", marker: "02", color: "#ffa116" },
+  recent: { label: "Recent 100",  marker: "03", color: "#00b8a3" },
 };
 
-export default function Column({ status, tasks, columns, onMove, onDelete, onAdd, onOpen, onRefresh }) {
-  const { label, marker, color } = COL[status];
+export default function Column({ status, tasks, onMove, onDelete, onAdd, onOpen, readOnly }) {
+  const { label, marker, color } = COL[status] ?? { label: status, marker: "—", color: "#888" };
   const [search, setSearch] = useState("");
 
   const visibleTasks = useMemo(() => {
@@ -22,11 +21,6 @@ export default function Column({ status, tasks, columns, onMove, onDelete, onAdd
         <span className="col-marker">{marker}</span>
         <span className="col-title">{label}</span>
         <span className="col-count">{tasks.length}</span>
-        {status === "completed" && onRefresh && (
-          <button className="col-refresh" onClick={onRefresh} title="Show 20 different random problems">
-            ↺
-          </button>
-        )}
       </div>
 
       <div className="col-filters">
@@ -46,7 +40,7 @@ export default function Column({ status, tasks, columns, onMove, onDelete, onAdd
           <TaskCard
             key={task.id ?? task.titleSlug}
             task={task}
-            columns={columns}
+            columns={readOnly ? [] : ["doing"]}
             onMove={onMove}
             onDelete={onDelete}
             onOpen={onOpen}
@@ -54,7 +48,7 @@ export default function Column({ status, tasks, columns, onMove, onDelete, onAdd
         ))}
       </div>
 
-      {status !== "completed" && (
+      {!readOnly && (
         <button className="col-add" onClick={() => onAdd(status)}>
           + Add problem
         </button>
