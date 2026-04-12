@@ -622,6 +622,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
+            min-width: 0;
         }
 
         .empty-hint {
@@ -1019,7 +1020,7 @@
         </div>
 
         <nav class="tabs">
-            <button class="tab active" data-tab="daily">Daily</button>
+            <button class="tab active" data-tab="daily">Daily Suggestion</button>
             <button class="tab" data-tab="company">Company</button>
             <button class="tab" data-tab="recent">Recent 100</button>
         </nav>
@@ -1036,7 +1037,7 @@
                 <select id="company-sel" class="company-sel">
                     <option value="">Choose a company…</option>
                 </select>
-                <input id="company-search" class="company-search" type="text" placeholder="Search problems by title…"
+                <input id="company-search" class="company-search" type="text" placeholder="Search by title or ID…"
                     style="display:none" autocomplete="off" spellcheck="false">
                 <div id="company-list" class="prob-list">
                     <p class="empty-hint">Select a company to see top interview problems</p>
@@ -1396,7 +1397,10 @@
         function renderCompanyList(query) {
             const list = $('company-list');
             const q = query.toLowerCase().trim();
-            const filter = probs => q ? probs.filter(p => p.title.toLowerCase().includes(q)) : probs;
+            const qId = q && /^\d+$/.test(q) ? parseInt(q, 10) : null;
+            const filter = probs => q ? probs.filter(p =>
+                p.title.toLowerCase().includes(q) || (qId !== null && Number(p.id) === qId)
+            ) : probs;
 
             const solvedSlugs = new Set((appData?.submissions ?? []).map(s => s.titleSlug));
             const sortDone = probs => [...probs].sort((a, b) => (solvedSlugs.has(a.titleSlug) ? 1 : 0) - (solvedSlugs.has(b.titleSlug) ? 1 : 0));
@@ -1404,8 +1408,12 @@
             const real = sortDone(filter(companyRealProblems));
             const suggested = sortDone(filter(companySuggestedProblems));
 
+            if (!real.length && !suggested.length && !q) {
+                list.innerHTML = '<p class="empty-hint">No problems found for this company.</p>';
+                return;
+            }
             if (!real.length && !suggested.length) {
-                list.innerHTML = `<p class="empty-hint">${q ? 'No matching problems found.' : 'No problems found for this company.'}</p>`;
+                list.innerHTML = '';
                 return;
             }
 
@@ -1414,8 +1422,9 @@
                 const dClass = `diff-${diff.toLowerCase()}`;
                 const url = `https://leetcode.com/problems/${p.titleSlug}/`;
                 const done = solvedSlugs.has(p.titleSlug);
+                const idPrefix = p.id ? `${p.id}. ` : `${i + 1}. `;
                 return `<div class="prob-row${done ? ' prob-row--done' : ''}" data-slug="${escHtml(p.titleSlug)}" onclick="goTo('${url}')">
-      <span class="prob-title">${i + 1}. ${escHtml(p.title)}</span>
+      <span class="prob-title" title="${escHtml(p.title)}">${escHtml(idPrefix)}${escHtml(p.title)}</span>
       ${p.premium ? '<span class="prob-premium" title="Premium problem">★</span>' : ''}
       ${done ? '<span class="prob-done-badge">✓ Done</span>' : ''}
       <span class="diff-badge ${dClass}">${diff}</span>
@@ -1425,7 +1434,7 @@
             const parts = [];
             if (real.length) {
                 const collapsed = sectionCollapsed.real ? ' section-collapsed' : '';
-                parts.push(`<div class="section-header" onclick="toggleSection('real')"><button class="section-toggle-btn" data-toggle="real">${sectionCollapsed.real ? '▶' : '▼'}</button>User Defined Company Questions <span class="count-badge">${real.length}</span></div>`);
+                parts.push(`<div class="section-header" onclick="toggleSection('real')"><button class="section-toggle-btn" data-toggle="real">${sectionCollapsed.real ? '▶' : '▼'}</button>AI Suggested <span class="count-badge">${real.length}</span></div>`);
                 parts.push(`<div class="section-body${collapsed}" id="section-body-real">${renderProbs(real)}</div>`);
             }
             if (suggested.length) {

@@ -32,7 +32,7 @@ COMPANY_FILE = BASE / "frontend/src/data/companyData.json"
 PROBLEMS_FILE = BASE / "frontend/src/data/problemsData.json"
 DESC_CACHE = Path(__file__).parent / ".desc_cache.json"
 
-N_SUGGEST = 200
+N_SUGGEST = 300
 GQL_URL = "https://leetcode.com/graphql"
 HEADERS = {
     "Content-Type": "application/json",
@@ -208,7 +208,9 @@ def main():
             print(f"  {i + 1}/{len(companies)} done", file=sys.stderr)
 
     company_data["suggested"] = suggested
-    COMPANY_FILE.write_text(json.dumps(company_data, separators=(",", ":")))
+    # Strip scraped company-problem associations before writing the distributed file
+    output = {"companies": company_data["companies"], "suggested": suggested}
+    COMPANY_FILE.write_text(json.dumps(output, separators=(",", ":")))
 
     total = sum(len(v) for v in suggested.values())
     print(

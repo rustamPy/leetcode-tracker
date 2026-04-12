@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { fetchDailyProblem } from "../services/leetcodeAPI";
-import { companies, getProblemsForCompany } from "../services/api";
+import { companies, getSuggestedForCompany } from "../services/api";
 
 const DIFF_COLOR = { Easy: "#00b8a3", Medium: "#ffc01e", Hard: "#ef4743" };
 const DIFF_BG    = { Easy: "rgba(0,184,163,0.15)", Medium: "rgba(255,192,30,0.15)", Hard: "rgba(239,71,67,0.15)" };
 
-/** Pick a deterministic company problem for today (seed = date + company name). */
+/** Pick a deterministic AI-suggested problem for today (seed = date + company name). */
 function getCompanyDailyProblem(company) {
-  const problems = getProblemsForCompany(company);
+  const problems = getSuggestedForCompany(company);
   if (!problems.length) return null;
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const seed = [...(company + today)].reduce((acc, c) => acc + c.charCodeAt(0), 0);
@@ -39,7 +39,7 @@ export default function DailyColumn({ filterCompany, onCompanyChange, onAddToPro
     <div className="column column--daily">
       <div className="column-header" style={{ "--col": "#0a84ff" }}>
         <span className="col-marker">01</span>
-        <span className="col-title">Daily</span>
+        <span className="col-title">Daily Suggestion</span>
       </div>
 
       <div className="daily-company-wrap">

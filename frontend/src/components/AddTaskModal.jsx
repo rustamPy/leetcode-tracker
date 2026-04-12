@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api, companies, allTopics, getProblemsForCompany, getSuggestedForCompany, searchAllProblems, solvedSlugs as staticSolvedSlugs } from "../services/api";
+import { api, companies, allTopics, getSuggestedForCompany, searchAllProblems, solvedSlugs as staticSolvedSlugs } from "../services/api";
 import { useLeetCode } from "../hooks/useLeetCode";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
@@ -10,7 +10,7 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
     <div className={`modal-row${suggested ? " modal-row--suggested" : ""}${solved ? " modal-row--solved" : ""}`}>
       <div className="modal-row-info">
         <div className="modal-row-top">
-          <span className="modal-row-title">{p.title}</span>
+          <span className="modal-row-title" title={p.title}>{p.id ? `${p.id}. ` : ""}{p.title}</span>
           <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>{p.difficulty}</span>
           {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription">★</span>}
           {solved && <span className="solved-badge" title="You&apos;ve solved this problem">✓ Done</span>}
@@ -25,7 +25,7 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
             )}
           </div>
         )}
-        {p.topics?.length > 0 && suggested && (
+        {p.topics?.length > 0 && (
           <div className="modal-row-companies">
             {p.topics.slice(0, 4).map(t => (
               <span key={t} className="company-chip">{t}</span>
@@ -49,21 +49,25 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [query, setQuery] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [topic, setTopic] = useState("");
-  const [status, setStatus] = useState(initialStatus);
   const [results, setResults] = useState([]);
   const [suggested, setSuggested] = useState([]);
   const [hideSolved, setHideSolved] = useState(false);
-  const [collapseMain, setCollapseMain] = useState(false);
   const [collapseSuggested, setCollapseSuggested] = useState(false);
 
   useEffect(() => {
     if (mode === "company") {
       if (!company) { setResults([]); setSuggested([]); return; }
-      let list = getProblemsForCompany(company, { topic });
-      if (difficulty) list = list.filter(p => p.difficulty.toLowerCase() === difficulty.toLowerCase());
-      if (query) list = list.filter(p => p.title.toLowerCase().includes(query.toLowerCase()));
-      setResults(list.slice(0, 60));
-      setSuggested(getSuggestedForCompany(company, { topic, difficulty }));
+      let list = getSuggestedForCompany(company, { topic, difficulty });
+      if (query) {
+        const q = query.trim().toLowerCase();
+        const qId = parseInt(q, 10);
+        list = list.filter(p =>
+          p.title.toLowerCase().includes(q) ||
+          (!isNaN(qId) && p.id === qId)
+        );
+      }
+      setResults([]);
+      setSuggested(list);
       return;
     }
     setSuggested([]);
@@ -74,7 +78,6 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const sortSolvedLast = list => [...list].sort(
     (a, b) => (solvedSlugs.has(a.titleSlug) ? 1 : 0) - (solvedSlugs.has(b.titleSlug) ? 1 : 0)
   );
-  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(results);
   const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(suggested);
 
   const handleAdd = (p) => {
@@ -83,7 +86,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
       titleSlug: p.titleSlug,
       difficulty: p.difficulty,
       premium: p.premium ?? false,
-      status,
+      status: initialStatus,
       companies: p.companies ?? (company ? [company] : []),
       topics: p.topics ?? [],
       url: p.url ?? `https://leetcode.com/problems/${p.titleSlug}/`,
@@ -122,7 +125,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           <input
             autoFocus
             className="modal-input"
-            placeholder={mode === "company" ? "Filter by title..." : "Search by title..."}
+            placeholder={mode === "company" ? "Filter by title or ID..." : "Search by title or ID..."}
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
@@ -136,10 +139,6 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <option value="">All topics</option>
             {allTopics.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select className="modal-sel" value={status} onChange={e => setStatus(e.target.value)}>
-            <option value="todo">To Do</option>
-            <option value="doing">In Progress</option>
-          </select>
         </div>
 
         <div className="modal-list">
@@ -147,33 +146,12 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <p className="modal-hint">Select a company to browse its interview problems</p>
           )}
           {mode === "search" && !query && !difficulty && !topic && (
-            <p className="modal-hint">Type a title or pick a difficulty to search all 3,647 problems</p>
+            <p className="modal-hint">Type a title or pick a difficulty to search all problems</p>
           )}
-          {results.length === 0 && (mode === "search" ? (query || difficulty || topic) : company) && (
+          {mode === "search" && (query || difficulty || topic) && results.length === 0 && (
             <p className="modal-hint">No results</p>
           )}
-          {mode === "company" && company && visibleResults.length > 0 && (
-            <>
-              <button
-                className="modal-section-header"
-                onClick={() => setCollapseMain(v => !v)}
-                aria-expanded={!collapseMain}
-                aria-controls="main-section-list"
-              >
-                <span className="section-toggle-btn" aria-hidden="true">{collapseMain ? "▶" : "▼"}</span>
-                <span>User Defined Company Questions</span>
-                <span className="section-count">{visibleResults.length}</span>
-              </button>
-              {!collapseMain && (
-                <div id="main-section-list">
-                  {visibleResults.map(p => (
-                    <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-          {mode === "search" && visibleResults.map(p => (
+          {mode === "search" && results.map(p => (
             <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
           ))}
 
@@ -186,7 +164,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
                 aria-controls="suggested-section-list"
               >
                 <span className="section-toggle-btn" aria-hidden="true">{collapseSuggested ? "▶" : "▼"}</span>
-                <span>Suggested by similarity · {visibleSuggested.length}</span>
+                <span>AI Suggested · {visibleSuggested.length}</span>
               </button>
               {!collapseSuggested && (
                 <div id="suggested-section-list">

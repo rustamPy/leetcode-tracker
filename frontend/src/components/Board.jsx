@@ -77,7 +77,7 @@ export default function Board() {
         premium: getProblemBySlug(s.titleSlug)?.premium ?? false,
         status: "recent",
         companies: getCompaniesForSlug(s.titleSlug),
-        topics: [],
+        topics: getProblemBySlug(s.titleSlug)?.topics ?? [],
         url: `https://leetcode.com/problems/${s.titleSlug}/`,
         timestamp: s.timestamp,
         fromAPI: true,
