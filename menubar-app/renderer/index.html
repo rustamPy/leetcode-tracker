@@ -46,6 +46,63 @@
         }
 
         /* ── Header ─────────────────────────────────────────────────────────── */
+
+        /* ── Update banner ──────────────────────────────────────────────────── */
+        .update-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            background: rgba(234, 179, 8, 0.14);
+            border-bottom: 1px solid rgba(234, 179, 8, 0.35);
+            font-size: 11px;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+
+        .update-banner.hidden {
+            display: none;
+        }
+
+        .update-banner span {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .update-copy-btn {
+            background: rgba(234, 179, 8, 0.22);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 10px;
+            padding: 2px 7px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .update-copy-btn:hover {
+            background: rgba(234, 179, 8, 0.38);
+        }
+
+        .update-banner-close {
+            background: none;
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0 2px;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .update-banner-close:hover {
+            color: var(--text);
+        }
+
+        /* ── Header ─────────────────────────────────────────────────────────── */
         .header {
             display: flex;
             align-items: center;
@@ -711,6 +768,33 @@
             background: var(--surface);
         }
 
+        .settings-version {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 4px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text3);
+        }
+
+        .btn-check-update {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text2);
+            font-size: 10px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-family: var(--font);
+        }
+
+        .btn-check-update:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
         /* ── Login required overlay ─────────────────────────────────────────── */
         .login-overlay {
             position: absolute;
@@ -861,6 +945,12 @@
 <body>
     <div class="app">
 
+        <div id="update-banner" class="update-banner hidden">
+            <span id="update-banner-text"></span>
+            <button class="update-copy-btn" id="update-copy-btn" title="Copy command">Copy</button>
+            <button class="update-banner-close" id="update-banner-close" title="Dismiss">✕</button>
+        </div>
+
         <header class="header">
             <div class="user">
                 <div class="avatar-wrap">
@@ -978,6 +1068,10 @@
                 <p id="session-msg" class="settings-msg"></p>
 
                 <button id="btn-close-settings" class="btn-done">Done</button>
+                <div class="settings-version">
+                    <span id="version-lbl">v⋯</span>
+                    <button id="btn-check-update" class="btn-check-update">Check for update</button>
+                </div>
             </div>
         </div>
 
@@ -1026,10 +1120,50 @@
 
             loadDailyProblem();
 
+            // Show current version in settings footer
+            window.lc.getVersion().then(v => {
+                setText('version-lbl', `v${v}`);
+            });
+
             window.lc.onDataUpdate(({ userData, fetchedAt }) => {
                 if (!userData) return;
                 appData = userData;
                 renderAll(userData, fetchedAt);
+            });
+
+            window.lc.onUpdateAvailable(({ latest }) => {
+                const cmd = 'brew upgrade --cask leetcode-tracker';
+                $('update-banner-text').textContent = `🟡 v${latest} available — ${cmd}`;
+                $('update-banner').classList.remove('hidden');
+                setText('version-lbl', `v${latest} available ↑`);
+            });
+
+            $('update-copy-btn').addEventListener('click', () => {
+                const cmd = 'brew upgrade --cask leetcode-tracker';
+                navigator.clipboard.writeText(cmd).then(() => {
+                    const btn = $('update-copy-btn');
+                    btn.textContent = '✓ Copied';
+                    setTimeout(() => { btn.textContent = '⎘ Copy'; }, 2000);
+                });
+            });
+            $('update-banner-close').addEventListener('click', () => {
+                $('update-banner').classList.add('hidden');
+            });
+
+            $('btn-check-update').addEventListener('click', () => {
+                const btn = $('btn-check-update');
+                btn.textContent = 'Checking…';
+                btn.disabled = true;
+                // Re-send the IPC event by invoking a fresh check from main
+                window.lc.checkForUpdate().then(result => {
+                    btn.disabled = false;
+                    if (result?.updateAvailable) {
+                        btn.textContent = '↑ Update ready';
+                    } else {
+                        btn.textContent = '✓ Up to date';
+                        setTimeout(() => { btn.textContent = 'Check for update'; }, 3000);
+                    }
+                });
             });
 
             window.lc.getUsername().then(u => {
