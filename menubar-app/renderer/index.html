@@ -565,12 +565,26 @@
         .prob-done-badge {
             font-size: 10px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 8px;
-            background: rgba(0, 184, 163, 0.18);
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(0, 184, 163, 0.10);
+            border: 1px solid rgba(0, 184, 163, 0.22);
             color: var(--easy);
             white-space: nowrap;
             flex-shrink: 0;
+            letter-spacing: 0.02em;
+        }
+
+        .prob-row--done {
+            opacity: 0.5;
+            filter: saturate(0.3);
+            transition: opacity 0.12s, filter 0.12s;
+        }
+
+        .prob-row--done:hover {
+            opacity: 0.72;
+            filter: saturate(0.6);
+            background: var(--surface2);
         }
 
         .prob-row--done .prob-title {
@@ -1217,7 +1231,7 @@
             const filter = probs => q ? probs.filter(p => p.title.toLowerCase().includes(q)) : probs;
 
             const solvedSlugs = new Set((appData?.submissions ?? []).map(s => s.titleSlug));
-            const sortDone = probs => [...probs].sort((a, b) => (solvedSlugs.has(b.titleSlug) ? 1 : 0) - (solvedSlugs.has(a.titleSlug) ? 1 : 0));
+            const sortDone = probs => [...probs].sort((a, b) => (solvedSlugs.has(a.titleSlug) ? 1 : 0) - (solvedSlugs.has(b.titleSlug) ? 1 : 0));
 
             const real = sortDone(filter(companyRealProblems));
             const suggested = sortDone(filter(companySuggestedProblems));

@@ -69,8 +69,11 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
     setResults(searchAllProblems({ query, difficulty, topic }));
   }, [mode, company, difficulty, topic, query]);
 
-  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : results;
-  const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : suggested;
+  const sortSolvedLast = list => [...list].sort(
+    (a, b) => (solvedSlugs.has(a.titleSlug) ? 1 : 0) - (solvedSlugs.has(b.titleSlug) ? 1 : 0)
+  );
+  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(results);
+  const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(suggested);
 
   const handleAdd = (p) => {
     const result = onAdd({
