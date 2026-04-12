@@ -1,24 +1,4 @@
-/* ─── Variables ────────────────────────────────────────────────────────────── */
-:root {
-  --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'SF Mono', ui-monospace, 'Menlo', monospace;
-  --bg: #1c1c1e;
-  --surface: #2c2c2e;
-  --surface2: #3a3a3c;
-  --border: rgba(255, 255, 255, 0.10);
-  --text: #ffffff;
-  --text2: rgba(235, 235, 245, 0.60);
-  --muted: rgba(235, 235, 245, 0.45);
-  --blue: #0a84ff;
-  --blue-lt: rgba(10, 132, 255, 0.18);
-  --accent: #ffa116;
-  --easy: #00b8a3;
-  --medium: #ffc01e;
-  --hard: #ef4743;
-  --r: 10px;
-  --r-sm: 7px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
-}
+/* ─── Variables: see tokens.css (imported in main.jsx) ─────────────────────── */
 
 /* ─── Body ──────────────────────────────────────────────────────────────────── */
 body {
@@ -55,7 +35,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow);
 }
 
 .header-inner {
@@ -97,13 +76,6 @@ body {
   font-family: var(--mono);
 }
 
-.header-rule {
-  height: 2px;
-  background: repeating-linear-gradient(90deg,
-      var(--accent) 0px, var(--accent) 10px,
-      transparent 10px, transparent 16px);
-  opacity: 0.4;
-}
 
 .header-link {
   color: var(--accent);
@@ -969,6 +941,49 @@ body {
   padding-left: 14px;
 }
 
+.modal-row-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.modal-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.modal-section-header::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.modal-section-header .section-count {
+  background: var(--surface2);
+  color: var(--text2);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .modal-section-divider {
   display: flex;
   align-items: center;
@@ -980,6 +995,13 @@ body {
   letter-spacing: 0.06em;
   color: var(--blue);
   opacity: 0.8;
+  cursor: pointer;
+  user-select: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .modal-section-divider::after {
@@ -988,6 +1010,23 @@ body {
   height: 1px;
   background: var(--blue);
   opacity: 0.25;
+}
+
+.section-toggle-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s;
+}
+
+.section-toggle-btn:hover {
+  opacity: 1;
 }
 
 .modal-row-title {
@@ -1463,23 +1502,28 @@ body {
   flex-shrink: 0;
 }
 
-/* Solved row — muted to de-emphasise already-done problems */
+/* Solved row — strongly greyed-out to push completed work to the background */
 .modal-row--solved {
-  opacity: 0.55;
+  opacity: 0.35;
+  filter: saturate(0.3);
+  transition: opacity 0.15s, filter 0.15s;
 }
+
 .modal-row--solved:hover {
-  opacity: 0.8;
+  opacity: 0.62;
+  filter: saturate(0.6);
 }
 
 .solved-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 600;
   color: #059669;
-  background: rgba(5, 150, 105, 0.12);
-  border: 1px solid rgba(5, 150, 105, 0.3);
+  background: rgba(5, 150, 105, 0.10);
+  border: 1px solid rgba(5, 150, 105, 0.25);
   border-radius: 4px;
-  padding: 1px 6px;
+  padding: 1px 5px;
   flex-shrink: 0;
+  letter-spacing: 0.02em;
 }
 
 .premium-badge {

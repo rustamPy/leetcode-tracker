@@ -44,7 +44,6 @@ function AppInner() {
             Open Profile
           </a>
         </div>
-        <div className="header-rule" />
       </header>
 
       <main className="main">

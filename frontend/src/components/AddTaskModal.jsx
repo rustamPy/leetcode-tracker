@@ -11,7 +11,7 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
       <div className="modal-row-info">
         <div className="modal-row-top">
           <span className="modal-row-title">{p.title}</span>
-          <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}> {p.difficulty}</span>
+          <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>{p.difficulty}</span>
           {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription">★</span>}
           {solved && <span className="solved-badge" title="You&apos;ve solved this problem">✓ Done</span>}
         </div>
@@ -53,6 +53,8 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [results, setResults] = useState([]);
   const [suggested, setSuggested] = useState([]);
   const [hideSolved, setHideSolved] = useState(false);
+  const [collapseMain, setCollapseMain] = useState(false);
+  const [collapseSuggested, setCollapseSuggested] = useState(false);
 
   useEffect(() => {
     if (mode === "company") {
@@ -69,8 +71,11 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
     setResults(searchAllProblems({ query, difficulty, topic }));
   }, [mode, company, difficulty, topic, query]);
 
-  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : results;
-  const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : suggested;
+  const sortSolvedLast = list => [...list].sort(
+    (a, b) => (solvedSlugs.has(a.titleSlug) ? 1 : 0) - (solvedSlugs.has(b.titleSlug) ? 1 : 0)
+  );
+  const visibleResults = hideSolved ? results.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(results);
+  const visibleSuggested = hideSolved ? suggested.filter(p => !solvedSlugs.has(p.titleSlug)) : sortSolvedLast(suggested);
 
   const handleAdd = (p) => {
     const result = onAdd({
@@ -147,18 +152,49 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           {results.length === 0 && (mode === "search" ? (query || difficulty || topic) : company) && (
             <p className="modal-hint">No results</p>
           )}
-          {visibleResults.map(p => (
+          {mode === "company" && company && visibleResults.length > 0 && (
+            <>
+              <button
+                className="modal-section-header"
+                onClick={() => setCollapseMain(v => !v)}
+                aria-expanded={!collapseMain}
+                aria-controls="main-section-list"
+              >
+                <span className="section-toggle-btn" aria-hidden="true">{collapseMain ? "▶" : "▼"}</span>
+                <span>User Defined Company Questions</span>
+                <span className="section-count">{visibleResults.length}</span>
+              </button>
+              {!collapseMain && (
+                <div id="main-section-list">
+                  {visibleResults.map(p => (
+                    <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          {mode === "search" && visibleResults.map(p => (
             <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
           ))}
 
           {mode === "company" && company && visibleSuggested.length > 0 && (
             <>
-              <div className="modal-section-divider">
+              <button
+                className="modal-section-divider"
+                onClick={() => setCollapseSuggested(v => !v)}
+                aria-expanded={!collapseSuggested}
+                aria-controls="suggested-section-list"
+              >
+                <span className="section-toggle-btn" aria-hidden="true">{collapseSuggested ? "▶" : "▼"}</span>
                 <span>Suggested by similarity · {visibleSuggested.length}</span>
-              </div>
-              {visibleSuggested.map(p => (
-                <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
-              ))}
+              </button>
+              {!collapseSuggested && (
+                <div id="suggested-section-list">
+                  {visibleSuggested.map(p => (
+                    <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>
