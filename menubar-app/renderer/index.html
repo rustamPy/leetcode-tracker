@@ -711,6 +711,151 @@
         .btn-done:hover {
             background: var(--surface);
         }
+
+        /* ── Login required overlay ─────────────────────────────────────────── */
+        .login-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            width: 100%;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .login-icon {
+            font-size: 38px;
+            line-height: 1;
+        }
+
+        .login-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .login-subtitle {
+            font-size: 12px;
+            color: var(--text2);
+            line-height: 1.55;
+            max-width: 270px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 11px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: opacity 0.15s;
+            margin-top: 4px;
+        }
+
+        .btn-login:hover {
+            opacity: 0.85;
+        }
+
+        .btn-login:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        .login-status {
+            font-size: 12px;
+            color: var(--text2);
+            min-height: 16px;
+        }
+
+        .login-status.ok {
+            color: var(--easy);
+        }
+
+        .login-status.err {
+            color: var(--hard);
+        }
+
+        .btn-skip {
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: var(--text3);
+            cursor: pointer;
+            font-family: var(--font);
+            padding: 2px;
+        }
+
+        .btn-skip:hover {
+            color: var(--text2);
+        }
+
+        /* ── Mismatch banner ────────────────────────────────────────────────── */
+        .mismatch-banner {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            background: rgba(239, 71, 67, 0.1);
+            border-bottom: 1px solid rgba(239, 71, 67, 0.25);
+            flex-shrink: 0;
+        }
+
+        .mismatch-banner.hidden {
+            display: none;
+        }
+
+        .mismatch-text {
+            font-size: 11px;
+            color: var(--hard);
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .mismatch-btn {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--hard);
+            background: none;
+            border: 1px solid rgba(239, 71, 67, 0.35);
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-family: var(--font);
+            white-space: nowrap;
+            transition: background 0.12s;
+        }
+
+        .mismatch-btn:hover {
+            background: rgba(239, 71, 67, 0.12);
+        }
+
+        .mismatch-dismiss {
+            font-size: 14px;
+            color: var(--text3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 2px;
+            line-height: 1;
+        }
     </style>
 </head>
 
@@ -770,10 +915,18 @@
             <span class="synced-lbl" id="synced-lbl"></span>
         </div>
 
+        <!-- Mismatch banner: shown when session username ≠ configured username -->
+        <div id="mismatch-banner" class="mismatch-banner hidden">
+            <span id="mismatch-text" class="mismatch-text"></span>
+            <button id="btn-switch-user" class="mismatch-btn">Switch</button>
+            <button id="btn-relogin" class="mismatch-btn">Re-login</button>
+            <button id="btn-dismiss-mismatch" class="mismatch-dismiss" title="Dismiss">✕</button>
+        </div>
+
         <nav class="tabs">
             <button class="tab active" data-tab="daily">Daily</button>
             <button class="tab" data-tab="company">Company</button>
-            <button class="tab" data-tab="recent">Recent</button>
+            <button class="tab" data-tab="recent">Recent 100</button>
         </nav>
 
         <div class="tab-panels">
@@ -813,7 +966,32 @@
                     <button id="btn-save-user" class="btn-save">Save</button>
                 </div>
                 <p id="settings-msg" class="settings-msg"></p>
+
+                <label class="settings-label" style="margin-top:10px">Session token <span
+                        style="font-weight:400;opacity:.55">(optional)</span></label>
+                <div class="settings-irow">
+                    <input id="session-input" class="settings-input" type="password"
+                        placeholder="LEETCODE_SESSION cookie value" autocomplete="off" spellcheck="false">
+                    <button id="btn-save-session" class="btn-save">Save</button>
+                </div>
+                <p style="font-size:.68rem;opacity:.5;margin:3px 0 6px">Unlocks full solve history · leetcode.com →
+                    DevTools → Application → Cookies</p>
+                <p id="session-msg" class="settings-msg"></p>
+
                 <button id="btn-close-settings" class="btn-done">Done</button>
+            </div>
+        </div>
+
+        <!-- Login required overlay: shown when no valid session is stored -->
+        <div id="login-overlay" class="login-overlay hidden">
+            <div class="login-box">
+                <div class="login-icon">🔑</div>
+                <div class="login-title">Connect your LeetCode account</div>
+                <div class="login-subtitle">Log in so the app can track all your solved problems and match the right
+                    account.</div>
+                <button id="btn-login" class="btn-login">Log in to LeetCode →</button>
+                <p id="login-status" class="login-status"></p>
+                <button id="btn-skip-login" class="btn-skip">Continue without login</button>
             </div>
         </div>
 
@@ -858,6 +1036,32 @@
             window.lc.getUsername().then(u => {
                 $('username-input').value = u ?? '';
             });
+            window.lc.getSession().then(s => {
+                $('session-input').value = s ?? '';
+            });
+
+            // Check session on startup: show login overlay or mismatch banner as needed
+            checkSessionAndUpdateUI();
+        }
+
+        // Evaluates session status and updates login-overlay / mismatch-banner.
+        // safe to call at any time (startup, after username change, after login).
+        async function checkSessionAndUpdateUI() {
+            const status = await window.lc.checkSession();
+            if (!status.hasSession) {
+                $('login-overlay').classList.remove('hidden');
+                $('mismatch-banner').classList.add('hidden');
+                return;
+            }
+            $('login-overlay').classList.add('hidden');
+            if (status.mismatch && status.sessionUsername) {
+                setText('mismatch-text',
+                    `Session is for "${status.sessionUsername}" — app is set to "${status.storedUsername}"`);
+                $('btn-switch-user').dataset.sessionUser = status.sessionUsername;
+                $('mismatch-banner').classList.remove('hidden');
+            } else {
+                $('mismatch-banner').classList.add('hidden');
+            }
         }
 
         function renderAll(data, fetchedAt) {
@@ -944,7 +1148,7 @@
                 list.innerHTML = '<p class="empty-hint">No recent submissions</p>';
                 return;
             }
-            list.innerHTML = submissions.slice(0, 20).map(s => {
+            list.innerHTML = submissions.slice(0, 100).map(s => {
                 const url = `https://leetcode.com/problems/${s.titleSlug}/`;
                 const date = fmtDate(Number(s.timestamp) * 1000);
                 return `<div class="prob-row" onclick="goTo('${url}')">
@@ -1003,6 +1207,41 @@
             searchBar.style.display = '';
             searchBar.value = '';
             renderCompanyList('');
+            verifyCompanyPremium([...companyRealProblems, ...companySuggestedProblems]);
+        }
+
+        // Background async verification of premium status via GraphQL.
+        // Processes 3 problems concurrently, updates DOM rows in-place.
+        let _premiumVerifyToken = 0;
+        async function verifyCompanyPremium(problems) {
+            const token = ++_premiumVerifyToken;
+            const CONCURRENCY = 3;
+            const DELAY_MS = 150;
+            // Only check problems not already flagged premium in local data
+            const toCheck = problems.filter(p => !p.premium && p.titleSlug);
+            for (let i = 0; i < toCheck.length; i += CONCURRENCY) {
+                if (token !== _premiumVerifyToken) return; // cancelled by new company selection
+                const batch = toCheck.slice(i, i + CONCURRENCY);
+                await Promise.allSettled(batch.map(async p => {
+                    const isPremium = await window.lc.checkPremium(p.titleSlug);
+                    if (isPremium !== true) return;
+                    p.premium = true;
+                    // Update the rendered row in-place without a full re-render
+                    const row = document.querySelector(`[data-slug="${CSS.escape(p.titleSlug)}"]`);
+                    if (!row) return;
+                    const titleSpan = row.querySelector('.prob-title');
+                    if (titleSpan && !row.querySelector('.prob-premium')) {
+                        const badge = document.createElement('span');
+                        badge.className = 'prob-premium';
+                        badge.title = 'Premium problem';
+                        badge.textContent = '★';
+                        titleSpan.insertAdjacentElement('afterend', badge);
+                    }
+                }));
+                if (i + CONCURRENCY < toCheck.length) {
+                    await new Promise(r => setTimeout(r, DELAY_MS));
+                }
+            }
         }
 
         function renderCompanyList(query) {
@@ -1026,7 +1265,7 @@
                 const dClass = `diff-${diff.toLowerCase()}`;
                 const url = `https://leetcode.com/problems/${p.titleSlug}/`;
                 const done = solvedSlugs.has(p.titleSlug);
-                return `<div class="prob-row${done ? ' prob-row--done' : ''}" onclick="goTo('${url}')">
+                return `<div class="prob-row${done ? ' prob-row--done' : ''}" data-slug="${escHtml(p.titleSlug)}" onclick="goTo('${url}')">
       <span class="prob-title">${i + 1}. ${escHtml(p.title)}</span>
       ${p.premium ? '<span class="prob-premium" title="Premium problem">★</span>' : ''}
       ${done ? '<span class="prob-done-badge">✓ Done</span>' : ''}
@@ -1152,6 +1391,8 @@
                 renderAll(result.userData, result.fetchedAt);
                 msg.textContent = '✓ Username updated!';
                 msg.className = 'settings-msg ok';
+                // Re-check session against the new username
+                checkSessionAndUpdateUI();
                 setTimeout(() => $('settings-overlay').classList.add('hidden'), 1200);
             }
         });
@@ -1163,6 +1404,120 @@
         $('btn-open-web').addEventListener('click', () => window.lc.openWebApp());
         // Open local web tracker
         $('btn-open-tracker').addEventListener('click', () => window.lc.openTracker());
+
+        $('btn-save-session').addEventListener('click', async () => {
+            const token = $('session-input').value.trim();
+            const msg = $('session-msg');
+            msg.textContent = 'Saving…'; msg.className = 'settings-msg';
+            const ok = await window.lc.saveSession(token);
+            if (!ok) {
+                msg.textContent = 'Invalid token format.';
+                msg.className = 'settings-msg err';
+                return;
+            }
+            if (!token) {
+                msg.textContent = 'Session cleared.';
+                msg.className = 'settings-msg ok';
+                setTimeout(() => { msg.textContent = ''; msg.className = 'settings-msg'; }, 3000);
+                return;
+            }
+            // Check if the session belongs to the configured username
+            const [sessionUsername, storedUsername] = await Promise.all([
+                window.lc.getSessionUsername(),
+                window.lc.getUsername(),
+            ]);
+            if (sessionUsername && storedUsername &&
+                sessionUsername.toLowerCase() !== storedUsername.toLowerCase()) {
+                msg.textContent = `⚠ Session belongs to "${sessionUsername}" but app is set to "${storedUsername}". Log in to LeetCode as "${storedUsername}" and update your session.`;
+                msg.className = 'settings-msg err';
+                return;
+            }
+            msg.textContent = 'Session saved — fetching full history…';
+            msg.className = 'settings-msg ok';
+            const result = await window.lc.fetchUserData(storedUsername ?? await window.lc.getUsername());
+            if (!result.error) {
+                appData = result.userData;
+                renderAll(result.userData, result.fetchedAt);
+            }
+            setTimeout(() => { msg.textContent = ''; msg.className = 'settings-msg'; }, 4000);
+        });
+
+        // ── Login overlay handlers ────────────────────────────────────────────
+
+        $('btn-login').addEventListener('click', async () => {
+            const btn = $('btn-login');
+            const status = $('login-status');
+            btn.disabled = true;
+            btn.textContent = 'Opening LeetCode…';
+            status.textContent = 'Waiting for you to log in…';
+            status.className = 'login-status';
+
+            const result = await window.lc.loginWithBrowser();
+
+            btn.disabled = false;
+            btn.textContent = 'Log in to LeetCode →';
+
+            if (!result.success) {
+                status.textContent = 'Login cancelled.';
+                return;
+            }
+
+            // Update session input in settings to reflect the new token
+            $('session-input').value = result.token ?? '';
+
+            const storedUsername = await window.lc.getUsername();
+            if (result.sessionUsername &&
+                result.sessionUsername.toLowerCase() !== storedUsername.toLowerCase()) {
+                // Mismatch — hide login overlay, show mismatch banner
+                $('login-overlay').classList.add('hidden');
+                setText('mismatch-text',
+                    `Session is for "${result.sessionUsername}" — app is set to "${storedUsername}"`);
+                $('btn-switch-user').dataset.sessionUser = result.sessionUsername;
+                $('mismatch-banner').classList.remove('hidden');
+                return;
+            }
+
+            // Match — fetch full data and dismiss overlay
+            status.textContent = '✓ Logged in! Fetching your data…';
+            status.className = 'login-status ok';
+            const r = await window.lc.fetchUserData(storedUsername);
+            if (r.userData) {
+                appData = r.userData;
+                renderAll(r.userData, r.fetchedAt);
+            }
+            status.textContent = '';
+            $('login-overlay').classList.add('hidden');
+        });
+
+        $('btn-skip-login').addEventListener('click', () => {
+            $('login-overlay').classList.add('hidden');
+        });
+
+        // ── Mismatch banner handlers ──────────────────────────────────────────
+
+        $('btn-switch-user').addEventListener('click', async () => {
+            const newUser = $('btn-switch-user').dataset.sessionUser;
+            if (!newUser) return;
+            $('username-input').value = newUser;
+            $('mismatch-banner').classList.add('hidden');
+            const ok = await window.lc.saveUsername(newUser);
+            if (ok) {
+                const result = await window.lc.fetchUserData(newUser);
+                if (result.userData) {
+                    appData = result.userData;
+                    renderAll(result.userData, result.fetchedAt);
+                }
+            }
+        });
+
+        $('btn-relogin').addEventListener('click', () => {
+            $('mismatch-banner').classList.add('hidden');
+            $('login-overlay').classList.remove('hidden');
+        });
+
+        $('btn-dismiss-mismatch').addEventListener('click', () => {
+            $('mismatch-banner').classList.add('hidden');
+        });
 
         window.addEventListener('load', init);
     </script>

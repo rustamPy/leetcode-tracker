@@ -1,14 +1,14 @@
-/* Better dimmed palettes */
-const DIFF_BORDER = { Easy: "#16a34a", Medium: "#b45309", Hard: "#e11d48" };
-const DIFF_BG     = { Easy: "#f0fdf4", Medium: "#fffbeb", Hard: "#fff1f2" };
-const DIFF_BADGE  = { Easy: "#dcfce7", Medium: "#fef3c7", Hard: "#ffe4e6" };
+/* Dark-theme diff palette */
+const DIFF_BORDER = { Easy: "#00b8a3", Medium: "#ffc01e", Hard: "#ef4743" };
+const DIFF_BG     = { Easy: "rgba(0,184,163,0.08)", Medium: "rgba(255,192,30,0.08)", Hard: "rgba(239,71,67,0.08)" };
+const DIFF_BADGE  = { Easy: "rgba(0,184,163,0.2)",  Medium: "rgba(255,192,30,0.2)",  Hard: "rgba(239,71,67,0.2)" };
 
 export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
   const isAPI  = !!task.fromAPI;
   const known  = task.difficulty && task.difficulty !== "Unknown";
-  const border = known ? (DIFF_BORDER[task.difficulty] ?? "#64748b") : "#64748b";
-  const bg     = known ? (DIFF_BG[task.difficulty]     ?? "#f8fafc") : "#f8fafc";
-  const badge  = known ? (DIFF_BADGE[task.difficulty]  ?? "#e2e8f0") : null;
+  const border = known ? (DIFF_BORDER[task.difficulty] ?? "rgba(255,255,255,0.15)") : "rgba(255,255,255,0.15)";
+  const bg     = known ? (DIFF_BG[task.difficulty]     ?? "rgba(255,255,255,0.04)") : "rgba(255,255,255,0.04)";
+  const badge  = known ? (DIFF_BADGE[task.difficulty]  ?? null) : null;
 
   const prev = columns[columns.indexOf(task.status) - 1];
   const next = columns[columns.indexOf(task.status) + 1];

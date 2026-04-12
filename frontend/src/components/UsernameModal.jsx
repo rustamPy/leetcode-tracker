@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { validateUsername, getCacheEntry, clearCacheForUser, getCachedUsernames } from "../services/leetcodeAPI";
+import { validateUsername, getCacheEntry, clearCacheForUser, getCachedUsernames, getSession, setSession, clearSession } from "../services/leetcodeAPI";
 import { getLCCookieNames, deleteCookie } from "../services/cookieUtils";
 import { useLeetCode } from "../hooks/useLeetCode";
 
 export default function UsernameModal({ onClose }) {
-  const { username: current, changeUsername, clearCache, clearCookies } = useLeetCode();
+  const { username: current, changeUsername, clearCache, clearCookies, refresh, sessionUser, sessionMismatch, recheckSession } = useLeetCode();
 
   const [input,     setInput]     = useState(current);
   const [state,     setState]     = useState("idle");
@@ -12,6 +12,8 @@ export default function UsernameModal({ onClose }) {
   const [preview,   setPreview]   = useState(null);
   const [cached,    setCached]    = useState([]);
   const [cookies,   setCookies]   = useState([]);
+  const [session,   setSessionUI] = useState(() => getSession());
+  const [sessMsg,   setSessMsg]   = useState("");
   const timerRef = useRef(null);
 
   const refreshLists = () => {
@@ -69,6 +71,16 @@ export default function UsernameModal({ onClose }) {
   const handleDeleteCookie = (name) => {
     deleteCookie(name);
     refreshLists();
+  };
+
+  const handleSaveSession = async () => {
+    const trimmed = session.trim();
+    setSession(trimmed);
+    clearCacheForUser(current);
+    refresh();
+    await recheckSession();
+    setSessMsg(trimmed ? "Session saved — refreshing data…" : "Session cleared.");
+    setTimeout(() => setSessMsg(""), 3000);
   };
 
   const isCurrentUser = input.trim().toLowerCase() === current.toLowerCase();
@@ -180,6 +192,36 @@ export default function UsernameModal({ onClose }) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Session token */}
+        <div className="um-section">
+          <label className="um-label">LeetCode session <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional — unlocks full solve history)</span></label>
+          <div className="um-input-wrap">
+            <input
+              className="um-input"
+              type="password"
+              placeholder="Paste LEETCODE_SESSION cookie value"
+              value={session}
+              onChange={e => setSessionUI(e.target.value)}
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
+          <p style={{ fontSize: "0.72rem", opacity: 0.5, margin: "4px 0 8px" }}>
+            Find it: leetcode.com → DevTools (F12) → Application → Cookies → LEETCODE_SESSION
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn-primary um-confirm" style={{ flex: 1 }} onClick={handleSaveSession}>
+              {session.trim() ? "Save session" : "Clear session"}
+            </button>
+          </div>
+          {sessMsg && <p className="um-valid-msg" style={{ marginTop: 6 }}>{sessMsg}</p>}
+          {sessionMismatch && (
+            <p className="um-err" style={{ marginTop: 6 }}>
+              Session belongs to <strong>{sessionUser}</strong> but app is tracking <strong>{current}</strong>. Log in to LeetCode as <strong>{current}</strong> and update your session.
+            </p>
+          )}
         </div>
 
         </div>{/* /um-body */}

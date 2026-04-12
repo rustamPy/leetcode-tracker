@@ -18,12 +18,15 @@ export default {
         }
 
         const body = await request.text();
+        const session = request.headers.get("x-lc-session") ?? "";
+
         const upstream = await fetch(LC_GQL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Referer": "https://leetcode.com",
                 "User-Agent": "Mozilla/5.0 (compatible; lc-proxy/1.0)",
+                ...(session ? { "Cookie": `LEETCODE_SESSION=${session}` } : {}),
             },
             body,
         });
@@ -43,6 +46,6 @@ function corsHeaders(origin) {
     return {
         "Access-Control-Allow-Origin": allowed,
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, x-lc-session",
     };
 }

@@ -83,9 +83,9 @@ export default function Profile() {
           </div>
 
           <div className="profile-bars">
-            <Bar label="Easy"   value={solved.easy   ?? 0} total={TOTALS.easy}   color="#059669" />
-            <Bar label="Medium" value={solved.medium  ?? 0} total={TOTALS.medium} color="#d97706" />
-            <Bar label="Hard"   value={solved.hard    ?? 0} total={TOTALS.hard}   color="#dc2626" />
+            <Bar label="Easy"   value={solved.easy   ?? 0} total={TOTALS.easy}   color="#00b8a3" />
+            <Bar label="Medium" value={solved.medium  ?? 0} total={TOTALS.medium} color="#ffc01e" />
+            <Bar label="Hard"   value={solved.hard    ?? 0} total={TOTALS.hard}   color="#ef4743" />
           </div>
         </div>
 

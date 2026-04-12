@@ -90,7 +90,7 @@ query recentAcSubmissions($username: String!, $limit: Int!) {
 print(f"Fetching data for {USERNAME} via LeetCode GraphQL...")
 
 profile_data = gql(PROFILE_QUERY, {"username": USERNAME})
-sub_data = gql(SUBMISSIONS_QUERY, {"username": USERNAME, "limit": 300})
+sub_data = gql(SUBMISSIONS_QUERY, {"username": USERNAME, "limit": 3000})
 
 user = (profile_data or {}).get("data", {}).get("matchedUser") or {}
 contest = (profile_data or {}).get("data", {}).get("userContestRanking") or {}

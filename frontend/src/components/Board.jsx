@@ -1,13 +1,11 @@
 import { useState, useMemo, useCallback } from "react";
 import Column from "./Column";
+import DailyColumn from "./DailyColumn";
 import AddTaskModal from "./AddTaskModal";
 import ProblemDrawer from "./ProblemDrawer";
-import { api, companies, getCompaniesForSlug, getProblemBySlug } from "../services/api";
+import { api, getCompaniesForSlug, getProblemBySlug } from "../services/api";
 import { fetchProblem } from "../services/leetcodeAPI";
 import { useLeetCode } from "../hooks/useLeetCode";
-
-const COLUMNS = ["completed", "todo", "doing"];
-const LABELS = { completed: "Completed", doing: "In Progress", todo: "To Do" };
 
 export default function Board() {
   const { data } = useLeetCode();
@@ -17,18 +15,16 @@ export default function Board() {
     () => localStorage.getItem("lc_filter_company") ?? ""
   );
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerLoading, setDrawerLoading] = useState(false);
+  const [drawerProblem, setDrawerProblem] = useState(null);
+
   const applyCompanyFilter = (val) => {
     setFilterCompany(val);
     if (val) localStorage.setItem("lc_filter_company", val);
     else localStorage.removeItem("lc_filter_company");
   };
-  const [completedSeed, setCompletedSeed] = useState(0);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerLoading, setDrawerLoading] = useState(false);
-  const [drawerProblem, setDrawerProblem] = useState(null);
-
-  const handleMove = (id, status) => { api.updateTask(id, { status }); setTasks(api.getTasks()); };
   const handleDelete = (id) => { api.deleteTask(id); setTasks(api.getTasks()); };
   const handleAdd = (task) => { const result = api.createTask(task); setTasks(api.getTasks()); return result; };
 
@@ -61,68 +57,65 @@ export default function Board() {
     }
   }, []);
 
-  const allApiCompleted = useMemo(() => {
+  const handleAddToProgress = useCallback((task) => {
+    handleAdd({ ...task, status: "doing" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Recent 100: unique solved submissions, newest first
+  const recent100 = useMemo(() => {
     const subs = data?.submissions ?? [];
     const seen = new Set();
-    return subs
-      .filter(s => { if (seen.has(s.titleSlug)) return false; seen.add(s.titleSlug); return true; })
-      .map(s => ({
-        id: `ac-${s.titleSlug}`,
+    const result = [];
+    for (const s of subs) {
+      if (seen.has(s.titleSlug)) continue;
+      seen.add(s.titleSlug);
+      result.push({
+        id: `rc-${s.titleSlug}`,
         title: s.title,
         titleSlug: s.titleSlug,
-        difficulty: getProblemBySlug(s.titleSlug)?.difficulty ?? s.difficulty ?? "Unknown",
+        difficulty: getProblemBySlug(s.titleSlug)?.difficulty ?? "Unknown",
         premium: getProblemBySlug(s.titleSlug)?.premium ?? false,
-        status: "completed",
+        status: "recent",
         companies: getCompaniesForSlug(s.titleSlug),
         topics: [],
         url: `https://leetcode.com/problems/${s.titleSlug}/`,
+        timestamp: s.timestamp,
         fromAPI: true,
-      }));
+      });
+      if (result.length >= 100) break;
+    }
+    return result;
   }, [data]);
 
-  const apiCompleted = useMemo(() => {
-    if (allApiCompleted.length <= 20) return allApiCompleted;
-    const shuffled = [...allApiCompleted].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 20);
-  }, [allApiCompleted, completedSeed]);
-
-  const filter = (list) =>
-    filterCompany ? list.filter(t => t.companies?.includes(filterCompany)) : list;
-
-  const colData = {
-    completed: filter([...apiCompleted, ...tasks.filter(t => t.status === "completed")]),
-    doing: filter(tasks.filter(t => t.status === "doing")),
-    todo: filter(tasks.filter(t => t.status === "todo")),
-  };
+  const doingTasks = tasks.filter(t => t.status === "doing");
 
   return (
     <div className="board-wrap">
-      <div className="company-filter-bar">
-        <span className="company-filter-label">Company</span>
-        <select className="company-filter-sel" value={filterCompany} onChange={e => applyCompanyFilter(e.target.value)}>
-          <option value="">All companies</option>
-          {companies.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        {filterCompany && (
-          <button className="company-filter-clear" onClick={() => applyCompanyFilter("")}>Clear</button>
-        )}
-      </div>
-
       <div className="board">
-        {COLUMNS.map((col, i) => (
-          <Column
-            key={col}
-            label={`0${i + 1} — ${LABELS[col]}`}
-            status={col}
-            tasks={colData[col]}
-            columns={COLUMNS}
-            onMove={handleMove}
-            onDelete={(id) => { if (!id.startsWith("ac-")) handleDelete(id); }}
-            onAdd={() => setAddingStatus(col === "completed" ? "todo" : col)}
-            onOpen={handleOpenProblem}
-            onRefresh={col === "completed" ? () => setCompletedSeed(s => s + 1) : undefined}
-          />
-        ))}
+        {/* Column 1 — Daily */}
+        <DailyColumn
+          filterCompany={filterCompany}
+          onCompanyChange={applyCompanyFilter}
+          onAddToProgress={handleAddToProgress}
+          onOpen={handleOpenProblem}
+        />
+
+        {/* Column 2 — In Progress */}
+        <Column
+          status="doing"
+          tasks={doingTasks}
+          onDelete={handleDelete}
+          onAdd={() => setAddingStatus("doing")}
+          onOpen={handleOpenProblem}
+        />
+
+        {/* Column 3 — Recent 100 */}
+        <Column
+          status="recent"
+          tasks={recent100}
+          onOpen={handleOpenProblem}
+          readOnly
+        />
       </div>
 
       {addingStatus && (

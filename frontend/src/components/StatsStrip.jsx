@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAchievements } from "../hooks/useAchievements";
 
-function AchievementBadge({ icon, name, desc, earned }) {
+function AchievementBadge({ name, desc, earned }) {
   const [hover, setHover] = useState(false);
   return (
     <div
@@ -9,11 +9,10 @@ function AchievementBadge({ icon, name, desc, earned }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <span className="achievement-icon">{earned ? icon : "🔒"}</span>
       <span className="achievement-name">{name}</span>
       {hover && (
         <div className="achievement-tooltip">
-          {earned ? `✓ ${desc}` : desc}
+          {desc}
         </div>
       )}
     </div>
@@ -28,9 +27,6 @@ export default function StatsStrip() {
     <div className="stats-strip">
       {/* Streak */}
       <div className="streak-block">
-        <span className="streak-flame" role="img" aria-label="streak">
-          {streak > 0 ? "🔥" : "💤"}
-        </span>
         <div className="streak-text">
           <span className="streak-num">{streak}</span>
           <span className="streak-label">day streak</span>

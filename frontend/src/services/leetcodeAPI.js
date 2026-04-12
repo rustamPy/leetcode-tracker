@@ -4,7 +4,19 @@ const GQL = import.meta.env.PROD
   ? (import.meta.env.VITE_GQL_PROXY ?? "")
   : "/lc-graphql";
 const CACHE_KEY = "lc_user_cache_v1";
-const CACHE_TTL = Infinity;
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const SESSION_KEY = "lc_session_v1";
+
+export function getSession() {
+  return localStorage.getItem(SESSION_KEY) ?? "";
+}
+export function setSession(token) {
+  if (token) localStorage.setItem(SESSION_KEY, token);
+  else localStorage.removeItem(SESSION_KEY);
+}
+export function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
 
 const PROFILE_QUERY = `
 query GetUser($username: String!) {
@@ -41,10 +53,57 @@ query GetSubs($username: String!, $limit: Int!) {
   }
 }`;
 
+// Authenticated query — uses LEETCODE_SESSION cookie.
+// userProgressQuestionList(questionStatus: SOLVED) returns every problem
+// the authenticated user has accepted. Pagination via skip/limit inside filters.
+// Query shape confirmed via LeetCode GraphQL introspection.
+const ALL_AC_QUERY = `
+query GetAllSolved($skip: Int!, $limit: Int!) {
+  userProgressQuestionList(filters: {
+    questionStatus: SOLVED
+    skip: $skip
+    limit: $limit
+    sortField: LAST_SUBMITTED_AT
+    sortOrder: DESCENDING
+  }) {
+    totalNum
+    questions { title titleSlug lastSubmittedAt }
+  }
+}`;
+
+// Paginate until all solved problems are fetched. Deduplicates by titleSlug.
+async function fetchAllAcSubmissions() {
+  const PAGE = 100;
+  const seen = new Map();
+  let skip = 0;
+  for (let guard = 0; guard < 200; guard++) {
+    const data = await gql(ALL_AC_QUERY, { skip, limit: PAGE });
+    console.log(data)
+    const list = data?.userProgressQuestionList?.questions ?? [];
+    for (const q of list) {
+      if (!seen.has(q.titleSlug)) {
+        seen.set(q.titleSlug, {
+          title: q.title,
+          titleSlug: q.titleSlug,
+          timestamp: q.lastSubmittedAt ?? "0",
+          lang: "",
+        });
+      }
+    }
+    const total = data?.userProgressQuestionList?.totalNum ?? 0;
+    if (!list.length || seen.size >= total) break;
+    skip += PAGE;
+  }
+  return [...seen.values()];
+}
+
 async function gql(query, variables) {
+  const session = getSession();
+  const headers = { "Content-Type": "application/json" };
+  if (session) headers["x-lc-session"] = session;
   const res = await fetch(GQL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ query, variables }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -129,19 +188,57 @@ export async function fetchUserData(username, { force = false } = {}) {
     }
   }
 
-  const [profileData, subData] = await Promise.all([
+  // When a session is available, use authenticated paginated submissionList
+  // which returns ALL accepted submissions (no server-side cap).
+  // Without auth, recentAcSubmissionList is hard-capped at ~20 by LeetCode.
+  const session = getSession();
+  const [profileData, recentSubData] = await Promise.all([
     gql(PROFILE_QUERY, { username }),
-    gql(SUBMISSIONS_QUERY, { username, limit: 300 }),
+    session ? Promise.resolve(null) : gql(SUBMISSIONS_QUERY, { username, limit: 100 }),
   ]);
 
-  const data = normalise(profileData, subData);
+  let data = normalise(profileData, recentSubData);
   if (!data) throw new Error(`User "${username}" not found on LeetCode`);
 
+  if (session) {
+    const allSubs = await fetchAllAcSubmissions();
+    data = { ...data, submissions: allSubs };
+  }
+
+  // LeetCode's public API caps recentAcSubmissionList at ~20 items regardless
+  // of the requested limit. Merge with previously cached submissions for this
+  // user so the solved-slugs set grows over time rather than resetting.
   const cache = loadCache();
+  const prev = cache[key]?.data;
+  if (prev?.username?.toLowerCase() === key && prev.submissions?.length) {
+    const newSlugs = new Set(data.submissions.map(s => s.titleSlug));
+    data = {
+      ...data,
+      submissions: [
+        ...data.submissions,
+        ...prev.submissions.filter(s => !newSlugs.has(s.titleSlug)),
+      ],
+    };
+  }
+
   cache[key] = { data, cachedAt: Date.now() };
   saveCache(cache);
 
   return { data, fromCache: false, cachedAt: Date.now() };
+}
+
+const USER_STATUS_QUERY = `query { userStatus { username } }`;
+
+// Returns the LeetCode username that the current session token belongs to.
+// Returns null if no session is set or the query fails.
+export async function fetchSessionUsername() {
+  if (!getSession()) return null;
+  try {
+    const data = await gql(USER_STATUS_QUERY, {});
+    return data?.userStatus?.username ?? null;
+  } catch {
+    return null;
+  }
 }
 
 const PROBLEM_QUERY = `
@@ -155,6 +252,52 @@ query GetProblem($titleSlug: String!) {
     hints
   }
 }`;
+
+const DAILY_QUERY = `
+query GetDailyProblem {
+  activeDailyCodingChallengeQuestion {
+    date
+    link
+    question {
+      questionFrontendId
+      title
+      titleSlug
+      difficulty
+      topicTags { name }
+      isPaidOnly
+    }
+  }
+}`;
+
+const DAILY_CACHE_KEY = "lc_daily_v1";
+
+export async function fetchDailyProblem() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(DAILY_CACHE_KEY) || "{}");
+    const today = new Date().toISOString().slice(0, 10);
+    if (cached.date === today && cached.data) return cached.data;
+  } catch { /* ignore */ }
+
+  const data = await gql(DAILY_QUERY, {});
+  const q = data?.activeDailyCodingChallengeQuestion;
+  if (!q) return null;
+
+  const result = {
+    date: q.date,
+    title: q.question.title,
+    titleSlug: q.question.titleSlug,
+    questionId: q.question.questionFrontendId,
+    difficulty: q.question.difficulty,
+    topics: (q.question.topicTags ?? []).map(t => t.name),
+    premium: q.question.isPaidOnly ?? false,
+    url: `https://leetcode.com${q.link}`,
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
+  try { localStorage.setItem(DAILY_CACHE_KEY, JSON.stringify({ date: today, data: result })); }
+  catch { /* storage full */ }
+  return result;
+}
 
 export async function fetchProblem(titleSlug) {
   const data = await gql(PROBLEM_QUERY, { titleSlug });
