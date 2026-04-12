@@ -496,7 +496,7 @@ body {
   gap: 10px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface3);
+  background: var(--surface2);
   flex-shrink: 0;
 }
 
@@ -942,9 +942,9 @@ body {
 }
 
 .modal-row-top {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .modal-section-header {
