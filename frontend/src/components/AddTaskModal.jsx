@@ -154,14 +154,23 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           )}
           {mode === "company" && company && visibleResults.length > 0 && (
             <>
-              <div className="modal-section-header" onClick={() => setCollapseMain(v => !v)}>
-                <button className="section-toggle-btn" tabIndex={-1}>{collapseMain ? "▶" : "▼"}</button>
+              <button
+                className="modal-section-header"
+                onClick={() => setCollapseMain(v => !v)}
+                aria-expanded={!collapseMain}
+                aria-controls="main-section-list"
+              >
+                <span className="section-toggle-btn" aria-hidden="true">{collapseMain ? "▶" : "▼"}</span>
                 <span>User Defined Company Questions</span>
                 <span className="section-count">{visibleResults.length}</span>
-              </div>
-              {!collapseMain && visibleResults.map(p => (
-                <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
-              ))}
+              </button>
+              {!collapseMain && (
+                <div id="main-section-list">
+                  {visibleResults.map(p => (
+                    <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
+                  ))}
+                </div>
+              )}
             </>
           )}
           {mode === "search" && visibleResults.map(p => (
@@ -170,13 +179,22 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
 
           {mode === "company" && company && visibleSuggested.length > 0 && (
             <>
-              <div className="modal-section-divider" onClick={() => setCollapseSuggested(v => !v)}>
-                <button className="section-toggle-btn" tabIndex={-1}>{collapseSuggested ? "▶" : "▼"}</button>
+              <button
+                className="modal-section-divider"
+                onClick={() => setCollapseSuggested(v => !v)}
+                aria-expanded={!collapseSuggested}
+                aria-controls="suggested-section-list"
+              >
+                <span className="section-toggle-btn" aria-hidden="true">{collapseSuggested ? "▶" : "▼"}</span>
                 <span>Suggested by similarity · {visibleSuggested.length}</span>
-              </div>
-              {!collapseSuggested && visibleSuggested.map(p => (
-                <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
-              ))}
+              </button>
+              {!collapseSuggested && (
+                <div id="suggested-section-list">
+                  {visibleSuggested.map(p => (
+                    <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
+                  ))}
+                </div>
+              )}
             </>
           )}
         </div>

@@ -959,6 +959,11 @@ body {
   color: var(--text2);
   cursor: pointer;
   user-select: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .modal-section-header::after {
@@ -992,6 +997,11 @@ body {
   opacity: 0.8;
   cursor: pointer;
   user-select: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .modal-section-divider::after {
