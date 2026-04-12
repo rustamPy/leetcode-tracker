@@ -21,7 +21,7 @@
   /* Text */
   --text: #ffffff;
   --text2: rgba(235, 235, 245, 0.60);
-  --text3: rgba(235, 235, 245, 0.30);
+  --text3: rgba(235, 235, 245, 0.30); /* Completed color */
   --muted: rgba(235, 235, 245, 0.45);
 
   /* Brand */
@@ -51,11 +51,11 @@
   :root {
     --bg: #f2f2f7;
     --surface: #ffffff;
-    --surface2: #e5e5ea;
+    --surface2: #fbfbfb;
     --border: rgba(0, 0, 0, 0.08);
     --text: #1c1c1e;
     --text2: rgba(60, 60, 67, 0.60);
-    --text3: rgba(60, 60, 67, 0.25);
+    --text3: rgba(48, 48, 48, 0.25);
     --muted: rgba(60, 60, 67, 0.45);
 
     --shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
