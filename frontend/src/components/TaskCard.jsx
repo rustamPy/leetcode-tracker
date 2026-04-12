@@ -56,6 +56,14 @@ export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
         </div>
       )}
 
+      {/* Completion date — shown for recent (API-sourced) cards */}
+      {isAPI && task.timestamp && (() => {
+        const ts = String(task.timestamp);
+        const ms = /^\d+$/.test(ts) ? Number(ts) * 1000 : Date.parse(ts);
+        if (!ms || isNaN(ms)) return null;
+        return <div className="task-date">{new Date(ms).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>;
+      })()}
+
       {/* Move buttons — hidden for API-sourced cards */}
       {!isAPI && (prev || next) && (
         <div className="task-actions">

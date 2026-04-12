@@ -16,11 +16,20 @@ export const solvedSlugs = new Set(userSubmissions.map(s => s.titleSlug));
 
 /* ── Company data ──────────────────────────────────────────── */
 export const companies = companyData.companies;
-export const problemsBySlug = companyData.problems;
+export const problemsBySlug = companyData.problems ?? {};
 const suggestedByCompany = companyData.suggested ?? {};
 
+// Inverted index: slug → array of company names
+const slugToCompanies = {};
+for (const [company, slugs] of Object.entries(suggestedByCompany)) {
+  for (const slug of slugs) {
+    if (!slugToCompanies[slug]) slugToCompanies[slug] = [];
+    slugToCompanies[slug].push(company);
+  }
+}
+
 export function getCompaniesForSlug(slug) {
-  return problemsBySlug[slug]?.companies ?? [];
+  return slugToCompanies[slug] ?? problemsBySlug[slug]?.companies ?? [];
 }
 
 export function getSuggestedForCompany(company, { topic = "", difficulty = "" } = {}) {
@@ -40,18 +49,21 @@ export function getSuggestedForCompany(company, { topic = "", difficulty = "" } 
     });
 }
 
-export function getProblemsForCompany(company, { topic = "" } = {}) {
-  return Object.entries(problemsBySlug)
-    .filter(([, p]) => {
-      const matchC = p.companies.includes(company);
-      const matchT = !topic || (p.topics ?? []).includes(topic);
-      return matchC && matchT;
+export function getProblemsForCompany(company, { topic = "", difficulty = "" } = {}) {
+  const slugs = suggestedByCompany[company] ?? [];
+  const d = difficulty.toLowerCase();
+  return slugs
+    .map(slug => {
+      const p = allProblemsBySlug[slug];
+      if (!p) return null;
+      return { ...p, titleSlug: slug };
     })
-    .map(([slug, p]) => ({
-      ...p,
-      titleSlug: slug,
-      premium: allProblemsBySlug[slug]?.premium ?? false,
-    }))
+    .filter(p => {
+      if (!p) return false;
+      const matchT = !topic || (p.topics ?? []).includes(topic);
+      const matchD = !d || (p.difficulty ?? "").toLowerCase() === d;
+      return matchT && matchD;
+    })
     .sort((a, b) => {
       const order = { Easy: 0, Medium: 1, Hard: 2 };
       return (order[a.difficulty] ?? 3) - (order[b.difficulty] ?? 3);
@@ -61,7 +73,7 @@ export function getProblemsForCompany(company, { topic = "" } = {}) {
 export function searchProblems({ query = "", difficulty = "" } = {}) {
   const q = query.trim().toLowerCase();
   const d = difficulty.toLowerCase();
-  return Object.entries(problemsBySlug)
+  return Object.entries(allProblemsBySlug)
     .filter(([, p]) => {
       const matchQ = !q || p.title.toLowerCase().includes(q);
       const matchD = !d || p.difficulty.toLowerCase() === d;
@@ -89,9 +101,10 @@ export function searchAllProblems({ query = "", difficulty = "", topic = "" } = 
   if (!query && !difficulty && !topic) return [];
   const q = query.trim().toLowerCase();
   const d = difficulty.toLowerCase();
+  const qId = q && /^\d+$/.test(q.trim()) ? parseInt(q.trim(), 10) : null;
   const filtered = Object.entries(allProblemsBySlug)
     .filter(([, p]) => {
-      const matchQ = !q || p.title.toLowerCase().includes(q);
+      const matchQ = !q || p.title.toLowerCase().includes(q) || (qId !== null && p.id === qId);
       const matchD = !d || p.difficulty.toLowerCase() === d;
       const matchT = !topic || (p.topics ?? []).includes(topic);
       return matchQ && matchD && matchT;
