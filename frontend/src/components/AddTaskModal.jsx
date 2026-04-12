@@ -4,7 +4,7 @@ import { useLeetCode } from "../hooks/useLeetCode";
 
 const DIFF_COLOR = { Easy: "#059669", Medium: "#d97706", Hard: "#dc2626" };
 
-function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
+function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs, added = false }) {
   const solved = solvedSlugs.has(p.titleSlug);
   return (
     <div className={`modal-row${suggested ? " modal-row--suggested" : ""}${solved ? " modal-row--solved" : ""}`}>
@@ -33,7 +33,11 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
           </div>
         )}
       </div>
-      <button className="btn-modal-add" onClick={() => onAdd(p)}>Add</button>
+      <button
+        className={`btn-modal-add${added ? " btn-modal-add--added" : ""}`}
+        onClick={() => !added && onAdd(p)}
+        disabled={added}
+      >{added ? "✓ Added" : "Add"}</button>
     </div>
   );
 }
@@ -53,6 +57,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [suggested, setSuggested] = useState([]);
   const [hideSolved, setHideSolved] = useState(false);
   const [collapseSuggested, setCollapseSuggested] = useState(false);
+  const [addedSlugs, setAddedSlugs] = useState(new Set());
 
   useEffect(() => {
     if (mode === "company") {
@@ -95,7 +100,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
       alert(`"${p.title}" is already on your board.`);
       return;
     }
-    onClose();
+    setAddedSlugs(prev => new Set(prev).add(p.titleSlug));
   };
 
   return (
@@ -152,7 +157,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
             <p className="modal-hint">No results</p>
           )}
           {mode === "search" && results.map(p => (
-            <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
+            <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} added={addedSlugs.has(p.titleSlug)} />
           ))}
 
           {mode === "company" && company && visibleSuggested.length > 0 && (
@@ -169,7 +174,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
               {!collapseSuggested && (
                 <div id="suggested-section-list">
                   {visibleSuggested.map(p => (
-                    <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
+                    <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} added={addedSlugs.has(p.titleSlug)} />
                   ))}
                 </div>
               )}

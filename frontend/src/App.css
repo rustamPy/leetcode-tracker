@@ -1072,6 +1072,16 @@ body {
   opacity: 0.82;
 }
 
+.btn-modal-add--added {
+  background: var(--green, #059669);
+  opacity: 0.75;
+  cursor: default;
+}
+
+.btn-modal-add--added:hover {
+  opacity: 0.75;
+}
+
 /* ─── Footer ─────────────────────────────────────────────────────────────────── */
 .footer {
   border-top: 1.5px solid var(--border);
