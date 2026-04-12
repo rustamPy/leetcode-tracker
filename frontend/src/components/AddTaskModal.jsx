@@ -12,8 +12,8 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs }) {
         <div className="modal-row-top">
           <span className="modal-row-title">{p.title}</span>
           <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}> {p.difficulty}</span>
-          {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription">★</span>}
-          {solved && <span className="solved-badge" title="You&apos;ve solved this problem">✓ Done</span>}
+          {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription"> ★</span>}
+          {solved && <span className="solved-badge" title="You&apos;ve solved this problem"> ✓ Done</span>}
         </div>
         {p.companies?.length > 0 && (
           <div className="modal-row-companies">
