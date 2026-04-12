@@ -7,48 +7,15 @@
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
     <title>LC Tracker</title>
+    <link rel="stylesheet" href="./tokens.css">
     <style>
-        /* ── Reset & tokens ─────────────────────────────────────────────────── */
+        /* ── Reset ──────────────────────────────────────────────────────────── */
         *,
         *::before,
         *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-
-        :root {
-            --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-            --bg: #1c1c1e;
-            --surface: #2c2c2e;
-            --surface2: #3a3a3c;
-            --border: rgba(255, 255, 255, 0.10);
-            --text: #ffffff;
-            --text2: rgba(235, 235, 245, 0.60);
-            --text3: rgba(235, 235, 245, 0.30);
-            --accent: #ffa116;
-            /* LC orange */
-            --easy: #00b8a3;
-            --medium: #ffc01e;
-            --hard: #ef4743;
-            --streak: #ff9f0a;
-            --blue: #0a84ff;
-            --radius: 12px;
-            --radius-sm: 7px;
-            --shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25);
-        }
-
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg: #f2f2f7;
-                --surface: #ffffff;
-                --surface2: #e5e5ea;
-                --border: rgba(0, 0, 0, 0.08);
-                --text: #000000;
-                --text2: rgba(60, 60, 67, 0.60);
-                --text3: rgba(60, 60, 67, 0.25);
-                --shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
-            }
         }
 
         /* ── Root layout ────────────────────────────────────────────────────── */
@@ -73,7 +40,7 @@
             background: var(--bg);
             color: var(--text);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-window);
             border: 1px solid var(--border);
             overflow: hidden;
         }
@@ -607,6 +574,7 @@
         }
 
         .prob-row--done .prob-title {
+            color: var(--text3);
             opacity: 0.19;
         }
 

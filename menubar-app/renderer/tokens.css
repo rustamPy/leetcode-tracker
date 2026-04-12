@@ -1,0 +1,64 @@
+/* ─── Design Tokens ───────────────────────────────────────────────────────── *
+ * Single source of truth for colors, typography, and spacing.
+ * Shared between the frontend (React/Vite) and the menubar app (Electron).
+ *
+ * To sync to the menubar app after changing this file:
+ *   cd frontend && npm run sync:tokens
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Dark theme (default) ── */
+:root {
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'SF Mono', ui-monospace, 'Menlo', monospace;
+
+  /* Backgrounds */
+  --bg: #1c1c1e;
+  --surface: #2c2c2e;
+  --surface2: #3a3a3c;
+  --border: rgba(255, 255, 255, 0.10);
+
+  /* Text */
+  --text: #ffffff;
+  --text2: rgba(235, 235, 245, 0.60);
+  --text3: rgba(235, 235, 245, 0.30);
+  --muted: rgba(235, 235, 245, 0.45);
+
+  /* Brand */
+  --blue: #0a84ff;
+  --blue-lt: rgba(10, 132, 255, 0.18);
+  --accent: #ffa116;
+
+  /* Difficulty */
+  --easy: #00b8a3;
+  --medium: #ffc01e;
+  --hard: #ef4743;
+  --streak: #ff9f0a;
+
+  /* Radii — both naming conventions for cross-app compatibility */
+  --radius: 10px;
+  --radius-sm: 7px;
+  --r: var(--radius);
+  --r-sm: var(--radius-sm);
+
+  /* Shadows */
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-window: 0 12px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Light theme (system-defined) ── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f2f2f7;
+    --surface: #ffffff;
+    --surface2: #e5e5ea;
+    --border: rgba(0, 0, 0, 0.08);
+    --text: #1c1c1e;
+    --text2: rgba(60, 60, 67, 0.60);
+    --text3: rgba(60, 60, 67, 0.25);
+    --muted: rgba(60, 60, 67, 0.45);
+
+    --shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    --shadow-window: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
+  }
+}

@@ -12,6 +12,7 @@
     "dist:arm64": "npm run setup && npm run build:icon && electron-builder --mac --arm64",
     "dist:x64": "npm run setup && npm run build:icon && electron-builder --mac --x64",
     "dist": "npm run setup && npm run build:icon && electron-builder --mac",
+    "sync:tokens": "cp ../frontend/src/tokens.css ./renderer/tokens.css",
     "test": "jest"
   },
   "devDependencies": {
