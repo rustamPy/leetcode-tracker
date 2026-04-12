@@ -78,6 +78,7 @@ async function fetchAllAcSubmissions() {
   let skip = 0;
   for (let guard = 0; guard < 200; guard++) {
     const data = await gql(ALL_AC_QUERY, { skip, limit: PAGE });
+    console.log(data)
     const list = data?.userProgressQuestionList?.questions ?? [];
     for (const q of list) {
       if (!seen.has(q.titleSlug)) {

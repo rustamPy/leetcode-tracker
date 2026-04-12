@@ -155,7 +155,7 @@ ipcMain.handle('get-company-problems', (_, company) => {
     return { real, suggested };
 });
 
-ipcMain.handle('get-daily-problem', () => {
+ipcMain.handle('get-daily-problem', async () => {
     try {
         const p = dataFile('problemsData.json');
         if (!p) return null;
@@ -165,7 +165,22 @@ ipcMain.handle('get-daily-problem', () => {
         const d = new Date();
         const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
         const slug = slugs[seed % slugs.length];
-        return { ...all[slug], titleSlug: slug };
+        const prob = { ...all[slug], titleSlug: slug };
+        try {
+            const qData = await gqlRequest(GQL_PROBLEM_PREMIUM, { titleSlug: slug });
+            if (typeof qData?.question?.isPaidOnly === 'boolean') {
+                prob.premium = qData.question.isPaidOnly;
+            }
+        } catch { /* fall back to local data on network error */ }
+        return prob;
+    } catch { return null; }
+});
+
+ipcMain.handle('check-premium', async (_, titleSlug) => {
+    if (typeof titleSlug !== 'string' || !/^[a-z0-9-]+$/.test(titleSlug.trim())) return null;
+    try {
+        const data = await gqlRequest(GQL_PROBLEM_PREMIUM, { titleSlug: titleSlug.trim() });
+        return typeof data?.question?.isPaidOnly === 'boolean' ? data.question.isPaidOnly : null;
     } catch { return null; }
 });
 
@@ -202,6 +217,68 @@ ipcMain.handle('get-session-username', async () => {
     } catch { return null; }
 });
 
+// Returns the full session status object.
+// { hasSession, expired?, mismatch?, sessionUsername?, storedUsername }
+ipcMain.handle('check-session', async () => {
+    const storedUsername = getStoredUsername();
+    const session = getStoredSession();
+    if (!session) return { hasSession: false, storedUsername };
+    try {
+        const data = await gqlRequest('query { userStatus { username } }', {});
+        const sessionUsername = data?.userStatus?.username ?? null;
+        if (!sessionUsername) return { hasSession: false, expired: true, storedUsername };
+        const mismatch = sessionUsername.toLowerCase() !== storedUsername.toLowerCase();
+        return { hasSession: true, sessionUsername, storedUsername, mismatch };
+    } catch {
+        // Network error — session file exists but couldn't verify; don't block the UI
+        return { hasSession: true, sessionUsername: null, storedUsername };
+    }
+});
+
+// Opens an in-app LeetCode login window; resolves with { success, token, sessionUsername }
+// once the LEETCODE_SESSION cookie appears in that window's session.
+ipcMain.handle('login-with-browser', async () => {
+    return new Promise((resolve) => {
+        const authWin = new BrowserWindow({
+            width: 920,
+            height: 660,
+            show: true,
+            alwaysOnTop: true,
+            title: 'Log in to LeetCode',
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+            },
+        });
+
+        authWin.loadURL('https://leetcode.com/accounts/login/');
+
+        const checkCookie = async () => {
+            try {
+                const cookies = await authWin.webContents.session.cookies.get({
+                    domain: 'leetcode.com',
+                    name: 'LEETCODE_SESSION',
+                });
+                if (!cookies.length) return;
+                const token = cookies[0].value;
+                // Persist immediately so gqlRequest picks it up
+                fs.writeFileSync(sessionFile(), token, 'utf-8');
+                let sessionUsername = null;
+                try {
+                    const d = await gqlRequest('query { userStatus { username } }', {});
+                    sessionUsername = d?.userStatus?.username ?? null;
+                } catch { }
+                authWin.close();
+                resolve({ success: true, token, sessionUsername });
+            } catch { }
+        };
+
+        authWin.webContents.on('did-navigate', checkCookie);
+        authWin.webContents.on('did-navigate-in-page', checkCookie);
+        authWin.on('closed', () => resolve({ success: false }));
+    });
+});
+
 ipcMain.on('open-url', (_, url) => {
     if (isSafeLeetCodeUrl(url)) shell.openExternal(url);
 });
@@ -224,6 +301,13 @@ function isSafeLeetCodeUrl(url) {
         return u.protocol === 'https:' && u.hostname === 'leetcode.com';
     } catch { return false; }
 }
+
+const GQL_PROBLEM_PREMIUM = `
+query QuestionPremium($titleSlug: String!) {
+  question(titleSlug: $titleSlug) {
+    isPaidOnly
+  }
+}`;
 
 const GQL_PROFILE = `
 query GetUser($u: String!) {
@@ -278,7 +362,9 @@ async function fetchAllAcSubmissions() {
                 seen.set(q.titleSlug, {
                     title: q.title,
                     titleSlug: q.titleSlug,
-                    timestamp: q.lastSubmittedAt ?? '0',
+                    timestamp: q.lastSubmittedAt
+                        ? String(Math.floor(new Date(q.lastSubmittedAt).getTime() / 1000))
+                        : '0',
                     lang: '',
                 });
             }

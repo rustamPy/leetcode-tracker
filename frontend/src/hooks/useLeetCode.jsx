@@ -15,7 +15,7 @@ function persistUsername(user) {
   setCookie(DEFAULT_USER_KEY, user, 365);
 }
 
-const LCContext = createContext(null);
+export const LCContext = createContext(null);
 
 function buildFallback() {
   const s = fallback.solved ?? {};
@@ -43,6 +43,7 @@ export function LCProvider({ children }) {
   const [cachedAt, setCachedAt] = useState(null);
   const [fromCache, setFromCache] = useState(false);
   const [sessionUser, setSessionUser] = useState(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   const load = useCallback(async (user, force = false) => {
     setLoading(true);
@@ -67,6 +68,7 @@ export function LCProvider({ children }) {
     // Check whose session this is (runs whether or not data fetch succeeded)
     const su = await fetchSessionUsername();
     setSessionUser(su);
+    setSessionChecked(true);
   }, []);
 
   useEffect(() => { load(username); }, [username, load]);
@@ -86,6 +88,7 @@ export function LCProvider({ children }) {
   const recheckSession = useCallback(async () => {
     const su = await fetchSessionUsername();
     setSessionUser(su);
+    setSessionChecked(true);
   }, []);
 
   const sessionMismatch = sessionUser != null && sessionUser.toLowerCase() !== username.toLowerCase();
@@ -93,7 +96,7 @@ export function LCProvider({ children }) {
   const cookieNames = getLCCookieNames();
 
   return (
-    <LCContext.Provider value={{ username, data, loading, error, cachedAt, fromCache, changeUsername, refresh, clearCache, clearCookies, cookieNames, sessionUser, sessionMismatch, recheckSession }}>
+    <LCContext.Provider value={{ username, data, loading, error, cachedAt, fromCache, changeUsername, refresh, clearCache, clearCookies, cookieNames, sessionUser, sessionMismatch, sessionChecked, recheckSession }}>
       {children}
     </LCContext.Provider>
   );
