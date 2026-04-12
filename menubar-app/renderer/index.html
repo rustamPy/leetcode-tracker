@@ -123,6 +123,11 @@
         .avatar-wrap {
             position: relative;
             flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .avatar-wrap:hover .avatar {
+            opacity: 0.8;
         }
 
         .avatar {
@@ -132,6 +137,7 @@
             object-fit: cover;
             background: var(--surface2);
             display: block;
+            transition: opacity 0.15s;
         }
 
         .badge-icon {
@@ -953,7 +959,8 @@
 
         <header class="header">
             <div class="user">
-                <div class="avatar-wrap">
+                <div class="avatar-wrap" id="avatar-wrap" title="Open LeetCode profile"
+                    onclick="window.lc.openWebApp()">
                     <img id="avatar" class="avatar" src="" alt="avatar">
                     <img id="badge-icon" class="badge-icon" src="" alt="" style="display:none">
                 </div>
@@ -965,7 +972,6 @@
             <div class="actions">
                 <button id="btn-refresh" class="action-btn" title="Refresh data">↺</button>
                 <button id="btn-settings" class="action-btn" title="Settings">⚙</button>
-                <button id="btn-open-web" class="action-btn" title="Open LeetCode profile">↗</button>
                 <button id="btn-open-tracker" class="action-btn" title="Open web tracker"
                     style="font-size:12px;letter-spacing:-1px">⌨️</button>
             </div>
@@ -1546,7 +1552,6 @@
             if (e.key === 'Enter') $('btn-save-user').click();
         });
 
-        $('btn-open-web').addEventListener('click', () => window.lc.openWebApp());
         // Open local web tracker
         $('btn-open-tracker').addEventListener('click', () => window.lc.openTracker());
 
