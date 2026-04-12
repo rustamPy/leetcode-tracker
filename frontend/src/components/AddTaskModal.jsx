@@ -53,6 +53,8 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
   const [results, setResults] = useState([]);
   const [suggested, setSuggested] = useState([]);
   const [hideSolved, setHideSolved] = useState(false);
+  const [collapseMain, setCollapseMain] = useState(false);
+  const [collapseSuggested, setCollapseSuggested] = useState(false);
 
   useEffect(() => {
     if (mode === "company") {
@@ -150,16 +152,29 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
           {results.length === 0 && (mode === "search" ? (query || difficulty || topic) : company) && (
             <p className="modal-hint">No results</p>
           )}
-          {visibleResults.map(p => (
+          {mode === "company" && company && visibleResults.length > 0 && (
+            <>
+              <div className="modal-section-header" onClick={() => setCollapseMain(v => !v)}>
+                <button className="section-toggle-btn" tabIndex={-1}>{collapseMain ? "▶" : "▼"}</button>
+                <span>User Defined Company Questions</span>
+                <span className="section-count">{visibleResults.length}</span>
+              </div>
+              {!collapseMain && visibleResults.map(p => (
+                <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
+              ))}
+            </>
+          )}
+          {mode === "search" && visibleResults.map(p => (
             <ProblemRow key={p.titleSlug} p={p} company={company} onAdd={handleAdd} solvedSlugs={solvedSlugs} />
           ))}
 
           {mode === "company" && company && visibleSuggested.length > 0 && (
             <>
-              <div className="modal-section-divider">
+              <div className="modal-section-divider" onClick={() => setCollapseSuggested(v => !v)}>
+                <button className="section-toggle-btn" tabIndex={-1}>{collapseSuggested ? "▶" : "▼"}</button>
                 <span>Suggested by similarity · {visibleSuggested.length}</span>
               </div>
-              {visibleSuggested.map(p => (
+              {!collapseSuggested && visibleSuggested.map(p => (
                 <ProblemRow key={`s-${p.titleSlug}`} p={p} company={company} onAdd={handleAdd} suggested solvedSlugs={solvedSlugs} />
               ))}
             </>

@@ -490,6 +490,24 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 6px 2px 2px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            padding: 0;
+            font-size: 8px;
+            line-height: 1;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .section-body.section-collapsed {
+            display: none;
         }
 
         .section-header .count-badge {
@@ -1225,6 +1243,16 @@
             }
         }
 
+        const sectionCollapsed = { real: false, suggested: false };
+
+        function toggleSection(id) {
+            sectionCollapsed[id] = !sectionCollapsed[id];
+            const body = document.getElementById('section-body-' + id);
+            const btn = document.querySelector('[data-toggle="' + id + '"]');
+            if (body) body.classList.toggle('section-collapsed', sectionCollapsed[id]);
+            if (btn) btn.textContent = sectionCollapsed[id] ? '▶' : '▼';
+        }
+
         function renderCompanyList(query) {
             const list = $('company-list');
             const q = query.toLowerCase().trim();
@@ -1256,13 +1284,15 @@
 
             const parts = [];
             if (real.length) {
-                parts.push(`<div class="section-header">User Defined Company Questions <span class="count-badge">${real.length}</span></div>`);
-                parts.push(renderProbs(real));
+                const collapsed = sectionCollapsed.real ? ' section-collapsed' : '';
+                parts.push(`<div class="section-header" onclick="toggleSection('real')"><button class="section-toggle-btn" data-toggle="real">${sectionCollapsed.real ? '▶' : '▼'}</button>User Defined Company Questions <span class="count-badge">${real.length}</span></div>`);
+                parts.push(`<div class="section-body${collapsed}" id="section-body-real">${renderProbs(real)}</div>`);
             }
             if (suggested.length) {
                 if (real.length) parts.push('<div class="section-divider"></div>');
-                parts.push(`<div class="section-header">✦ AI Suggested <span class="count-badge">${suggested.length}</span></div>`);
-                parts.push(renderProbs(suggested));
+                const collapsed = sectionCollapsed.suggested ? ' section-collapsed' : '';
+                parts.push(`<div class="section-header" onclick="toggleSection('suggested')"><button class="section-toggle-btn" data-toggle="suggested">${sectionCollapsed.suggested ? '▶' : '▼'}</button>✦ AI Suggested <span class="count-badge">${suggested.length}</span></div>`);
+                parts.push(`<div class="section-body${collapsed}" id="section-body-suggested">${renderProbs(suggested)}</div>`);
             }
             list.innerHTML = parts.join('');
         }
