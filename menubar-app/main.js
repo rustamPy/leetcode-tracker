@@ -504,7 +504,7 @@ function checkForUpdate() {
                     if (Notification.isSupported()) {
                         new Notification({
                             title: 'LeetCode Tracker update available',
-                            body: `v${latest} is out. Run: brew upgrade --cask leetcode-tracker`,
+                            body: `v${latest} is out. Run: brew update && brew reinstall --cask leetcode-tracker`,
                         }).show();
                     }
                 } catch { /* silent */ }

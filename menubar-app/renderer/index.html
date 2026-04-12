@@ -954,7 +954,7 @@
 
         <div id="update-banner" class="update-banner hidden">
             <span id="update-banner-text"></span>
-            <button class="update-copy-btn" id="update-copy-btn" title="Copy command">Copy</button>
+            <button class="update-copy-btn" id="update-copy-btn" title="Copy command">⎘ Copy</button>
             <button class="update-banner-close" id="update-banner-close" title="Dismiss">✕</button>
         </div>
 
@@ -1139,14 +1139,14 @@
             });
 
             window.lc.onUpdateAvailable(({ latest }) => {
-                const cmd = 'brew upgrade --cask leetcode-tracker';
+                const cmd = 'brew update && brew upgrade --cask leetcode-tracker';
                 $('update-banner-text').textContent = `🟡 v${latest} available — ${cmd}`;
                 $('update-banner').classList.remove('hidden');
                 setText('version-lbl', `v${latest} available ↑`);
             });
 
             $('update-copy-btn').addEventListener('click', () => {
-                const cmd = 'brew upgrade --cask leetcode-tracker';
+                const cmd = 'brew update && brew upgrade --cask leetcode-tracker';
                 navigator.clipboard.writeText(cmd).then(() => {
                     const btn = $('update-copy-btn');
                     btn.textContent = '✓ Copied';
