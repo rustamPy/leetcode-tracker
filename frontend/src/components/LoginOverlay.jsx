@@ -39,7 +39,6 @@ export default function LoginOverlay({ onDismiss }) {
   return (
     <div className="lo-backdrop" role="dialog" aria-modal="true" aria-label="Log in to LeetCode">
       <div className="lo-box">
-        <div className="lo-icon">🔑</div>
         <h2 className="lo-title">Connect your LeetCode account</h2>
         <p className="lo-subtitle">
           Sign in to LeetCode so the app can sync all solved problems for{" "}

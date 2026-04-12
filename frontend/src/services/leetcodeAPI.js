@@ -253,6 +253,52 @@ query GetProblem($titleSlug: String!) {
   }
 }`;
 
+const DAILY_QUERY = `
+query GetDailyProblem {
+  activeDailyCodingChallengeQuestion {
+    date
+    link
+    question {
+      questionFrontendId
+      title
+      titleSlug
+      difficulty
+      topicTags { name }
+      isPaidOnly
+    }
+  }
+}`;
+
+const DAILY_CACHE_KEY = "lc_daily_v1";
+
+export async function fetchDailyProblem() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(DAILY_CACHE_KEY) || "{}");
+    const today = new Date().toISOString().slice(0, 10);
+    if (cached.date === today && cached.data) return cached.data;
+  } catch { /* ignore */ }
+
+  const data = await gql(DAILY_QUERY, {});
+  const q = data?.activeDailyCodingChallengeQuestion;
+  if (!q) return null;
+
+  const result = {
+    date: q.date,
+    title: q.question.title,
+    titleSlug: q.question.titleSlug,
+    questionId: q.question.questionFrontendId,
+    difficulty: q.question.difficulty,
+    topics: (q.question.topicTags ?? []).map(t => t.name),
+    premium: q.question.isPaidOnly ?? false,
+    url: `https://leetcode.com${q.link}`,
+  };
+
+  const today = new Date().toISOString().slice(0, 10);
+  try { localStorage.setItem(DAILY_CACHE_KEY, JSON.stringify({ date: today, data: result })); }
+  catch { /* storage full */ }
+  return result;
+}
+
 export async function fetchProblem(titleSlug) {
   const data = await gql(PROBLEM_QUERY, { titleSlug });
   const q = data?.question;

@@ -1,7 +1,7 @@
-/* Better dimmed palettes */
-const DIFF_BORDER = { Easy: "#16a34a", Medium: "#b45309", Hard: "#e11d48" };
-const DIFF_BG     = { Easy: "#f0fdf4", Medium: "#fffbeb", Hard: "#fff1f2" };
-const DIFF_BADGE  = { Easy: "#dcfce7", Medium: "#fef3c7", Hard: "#ffe4e6" };
+/* Dark-theme diff palette */
+const DIFF_BORDER = { Easy: "#00b8a3", Medium: "#ffc01e", Hard: "#ef4743" };
+const DIFF_BG     = { Easy: "rgba(0,184,163,0.08)", Medium: "rgba(255,192,30,0.08)", Hard: "rgba(239,71,67,0.08)" };
+const DIFF_BADGE  = { Easy: "rgba(0,184,163,0.2)",  Medium: "rgba(255,192,30,0.2)",  Hard: "rgba(239,71,67,0.2)" };
 
 export default function TaskCard({ task, onMove, onDelete, onOpen, columns }) {
   const isAPI  = !!task.fromAPI;
