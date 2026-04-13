@@ -7,6 +7,7 @@ import StatsStrip from "./components/StatsStrip";
 import Board from "./components/Board";
 import LoginOverlay from "./components/LoginOverlay";
 import MismatchBanner from "./components/MismatchBanner";
+import UsernameModal from "./components/UsernameModal";
 import DocsSection from "./components/DocsSection";
 import EditorPage from "./components/EditorPage";
 import "./App.css";
@@ -19,6 +20,7 @@ function AppInner() {
   const isEditor = pathname === "/editor";
 
   const showLoginOverlay = sessionChecked && !getSession() && !sessionDismissed;
+  const showUsernameSetup = !username;
 
   const handleDismissLogin = () => {
     setShowLogin(false);
@@ -29,6 +31,9 @@ function AppInner() {
     <div className={`app${isEditor ? " app--editor" : ""}`}>
       {(showLoginOverlay || showLogin) && (
         <LoginOverlay onDismiss={handleDismissLogin} />
+      )}
+      {showUsernameSetup && (
+        <UsernameModal onClose={() => {}} />
       )}
 
       <header className="header">

@@ -2752,6 +2752,24 @@ body {
   text-decoration: underline;
 }
 
+/* Inline link styled as text — used inside <p> in overlays */
+.lo-btn-inline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: inherit;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.lo-btn-inline-link:hover {
+  text-decoration: underline;
+}
+
 /* ─── Python Editor Page ─────────────────────────────────────────────────────── */
 .editor-page {
   flex: 1;

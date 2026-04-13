@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { setSession } from "../services/leetcodeAPI";
 import { useLeetCode } from "../hooks/useLeetCode";
 
@@ -9,6 +10,7 @@ import { useLeetCode } from "../hooks/useLeetCode";
  */
 export default function LoginOverlay({ onDismiss }) {
   const { username, recheckSession, refresh } = useLeetCode();
+  const navigate = useNavigate();
   const [phase, setPhase] = useState(1); // 1 = prompt login, 2 = paste cookie
   const [token, setToken] = useState("");
   const [status, setStatus] = useState("");
@@ -56,11 +58,13 @@ export default function LoginOverlay({ onDismiss }) {
             <p className="lo-step-hint">
               After signing in, open DevTools (F12) → Application → Cookies →
               copy the <code>LEETCODE_SESSION</code> value and paste it below. 
-              Don't worry, it's safe! For more information: Read 
-               <a
-                href="/docs"
-                className="docs-inline-link"> cookie disclaimer.
-              </a>
+              Don't worry, it's safe! For more information:{" "}
+              <button
+                className="lo-btn-inline-link"
+                onClick={() => window.open("/docs#cookie-disclaimer", "_blank", "noopener,noreferrer")}
+              >
+                Read cookie disclaimer.
+              </button>
             </p>
             <div className="lo-input-row">
               <input

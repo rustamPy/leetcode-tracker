@@ -4,10 +4,9 @@ import { setCookie, getCookie, clearAllLCCookies, getLCCookieNames } from "../se
 import fallback from "../data/userData.json";
 
 const DEFAULT_USER_KEY = "lc_username_v1";
-const DEFAULT_USERNAME = fallback.username ?? "thisisrustam";
 
 function readStoredUsername() {
-  return getCookie(DEFAULT_USER_KEY) ?? localStorage.getItem(DEFAULT_USER_KEY) ?? DEFAULT_USERNAME;
+  return getCookie(DEFAULT_USER_KEY) ?? localStorage.getItem(DEFAULT_USER_KEY) ?? "";
 }
 
 function persistUsername(user) {
@@ -46,6 +45,11 @@ export function LCProvider({ children }) {
   const [sessionChecked, setSessionChecked] = useState(false);
 
   const load = useCallback(async (user, force = false) => {
+    if (!user) {
+      setLoading(false);
+      setData(null);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -56,11 +60,7 @@ export function LCProvider({ children }) {
       setFromCache(res.fromCache);
     } catch (e) {
       setError(e.message);
-      if (user.toLowerCase() === DEFAULT_USERNAME.toLowerCase()) {
-        setData(buildFallback());
-      } else {
-        setData(null);
-      }
+      setData(null);
     } finally {
       setLoading(false);
     }

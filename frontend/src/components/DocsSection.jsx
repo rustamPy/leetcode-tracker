@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 const STEPS = [
   {
     num: "01",
@@ -40,6 +42,13 @@ const STEPS = [
 ];
 
 export default function DocsSection() {
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   return (
     <section className="docs-section">
 
@@ -128,6 +137,75 @@ export default function DocsSection() {
                 </li>
               ))}
             </ol>
+          </div>
+
+          {/* ── Python Editor ──────────────────────────────────────── */}
+          <div className="docs-block">
+            <div className="docs-block-label">PYTHON EDITOR</div>
+
+            <div className="docs-install-cards">
+              <div className="docs-install-card docs-install-card--primary">
+                <div className="docs-install-card-badge">Built-in · No install</div>
+                <div className="docs-install-card-title">Write &amp; run Python in the browser</div>
+                <div className="docs-install-card-body">
+                  The <strong>Python Editor</strong> tab gives you a full VS Code–style editor
+                  powered by Monaco and a real Python runtime (Pyodide / WebAssembly) — no server,
+                  no extension, no signup. Everything runs locally in your browser tab.
+                </div>
+              </div>
+
+              <div className="docs-install-card">
+                <div className="docs-install-card-title">How to use it</div>
+                <ol className="docs-steps" style={{ marginTop: 0 }}>
+                  <li className="docs-step">
+                    <div className="docs-step-num">01</div>
+                    <div className="docs-step-content">
+                      <div className="docs-step-title">Open the tab</div>
+                      <div className="docs-step-body">
+                        Click <strong>Python Editor</strong> in the top nav. The Python runtime
+                        loads once (~5 s on first visit, instant after that).
+                      </div>
+                    </div>
+                  </li>
+                  <li className="docs-step">
+                    <div className="docs-step-num">02</div>
+                    <div className="docs-step-content">
+                      <div className="docs-step-title">Write your solution</div>
+                      <div className="docs-step-body">
+                        Type or paste Python code in the left pane. The editor supports syntax
+                        highlighting, auto-indentation, bracket matching, and autocomplete for
+                        keywords, builtins, exceptions, stdlib modules, and common LeetCode snippets.
+                      </div>
+                    </div>
+                  </li>
+                  <li className="docs-step">
+                    <div className="docs-step-num">03</div>
+                    <div className="docs-step-content">
+                      <div className="docs-step-title">Run it</div>
+                      <div className="docs-step-body">
+                        Press <code>▶ Run</code>. Output and errors appear in the right pane instantly.
+                      </div>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="docs-install-cards">
+              <div className="docs-install-card">
+                <div className="docs-install-card-title">Limitations</div>
+                <div className="docs-install-card-body">
+                  Pyodide runs the full CPython 3.x interpreter compiled to WebAssembly.
+                  Most standard-library code works. Things that don't:
+                </div>
+                <ul className="docs-disclaimer-list" style={{ marginTop: 4 }}>
+                  <li>Network calls (<code>requests</code>, <code>urllib</code> sockets) — the browser sandbox blocks raw sockets</li>
+                  <li>File system writes — <code>open()</code> is limited to the in-memory FS</li>
+                  <li>Third-party packages not bundled with Pyodide (e.g. <code>numpy</code> is available; <code>torch</code> is not)</li>
+                  <li>First load requires ~10 MB download — works offline after that</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* ── Cookie disclaimer ──────────────────────────────────── */}
