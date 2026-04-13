@@ -3,7 +3,7 @@
 Fetches every problem from LeetCode's public GraphQL API and writes
 frontend/src/data/problemsData.json.
 
-No authentication required — uses the same public endpoint the website uses.
+No authentication required - uses the same public endpoint the website uses.
 
 Output shape (keyed by titleSlug):
 {
@@ -91,7 +91,7 @@ def main(**_):
     pset = (first.get("data") or {}).get("problemsetQuestionList") or {}
     total = pset.get("total", 0)
     if not total:
-        raise RuntimeError("Could not fetch problem list — received empty response.")
+        raise RuntimeError("Could not fetch problem list - received empty response.")
 
     print(f"  Total problems: {total}")
 
@@ -111,7 +111,7 @@ def main(**_):
         print(f"  Fetched {fetched}/{total}", end="\r")
         skip += PAGE_SIZE
 
-    print(f"\n  Done — {len(all_questions)} problems fetched.")
+    print(f"\n  Done - {len(all_questions)} problems fetched.")
 
     problems: dict = {}
     for q in all_questions:

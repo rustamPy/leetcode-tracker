@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
 import { LCProvider, useLeetCode } from "./hooks/useLeetCode";
 import { getSession } from "./services/leetcodeAPI";
 import Profile from "./components/Profile";
@@ -6,18 +7,20 @@ import StatsStrip from "./components/StatsStrip";
 import Board from "./components/Board";
 import LoginOverlay from "./components/LoginOverlay";
 import MismatchBanner from "./components/MismatchBanner";
+import UsernameModal from "./components/UsernameModal";
+import DocsSection from "./components/DocsSection";
+import EditorPage from "./components/EditorPage";
 import "./App.css";
 
 function AppInner() {
   const { username, sessionChecked, sessionMismatch } = useLeetCode();
   const [showLogin, setShowLogin] = useState(false);
-  // Track when the user explicitly dismissed the overlay without adding a session.
-  // Prevents the overlay re-appearing on every render while they browse without one.
   const [sessionDismissed, setSessionDismissed] = useState(false);
+  const { pathname } = useLocation();
+  const isEditor = pathname === "/editor";
 
-  // Show login overlay once session check is done and no session is stored,
-  // unless the user has already dismissed it this session.
   const showLoginOverlay = sessionChecked && !getSession() && !sessionDismissed;
+  const showUsernameSetup = !username;
 
   const handleDismissLogin = () => {
     setShowLogin(false);
@@ -25,9 +28,12 @@ function AppInner() {
   };
 
   return (
-    <div className="app">
+    <div className={`app${isEditor ? " app--editor" : ""}`}>
       {(showLoginOverlay || showLogin) && (
         <LoginOverlay onDismiss={handleDismissLogin} />
+      )}
+      {showUsernameSetup && (
+        <UsernameModal onClose={() => {}} />
       )}
 
       <header className="header">
@@ -44,23 +50,64 @@ function AppInner() {
             Open Profile
           </a>
         </div>
+        <nav className="tab-bar" aria-label="Main navigation">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Board
+          </NavLink>
+          <NavLink
+            to="/docs"
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Docs &amp; Install
+          </NavLink>
+          <NavLink
+            to="/editor"
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Python Editor
+          </NavLink>
+        </nav>
       </header>
 
-      <main className="main">
-        <Profile />
-        <StatsStrip />
-        <section className="board-section">
-          <div className="section-label">BOARD</div>
-          <Board />
-        </section>
-      </main>
+      <Routes>
+        <Route path="/editor" element={<EditorPage />} />
+        <Route
+          path="/"
+          element={
+            <main className="main">
+              <Profile />
+              <StatsStrip />
+              <section className="board-section">
+                <div className="section-label">BOARD</div>
+                <Board />
+              </section>
+            </main>
+          }
+        />
+        <Route
+          path="/docs"
+          element={
+            <main className="main">
+              <Profile />
+              <StatsStrip />
+              <DocsSection />
+            </main>
+          }
+        />
+      </Routes>
 
-      <footer className="footer">
-        <span>{username} &mdash; LeetCode Tracker</span>
-        <a href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
-          leetcode.com/{username}
-        </a>
-      </footer>
+      {!isEditor && (
+        <footer className="footer">
+          <span>{username} &mdash; LeetCode Tracker</span>
+          <a href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
+            leetcode.com/{username}
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

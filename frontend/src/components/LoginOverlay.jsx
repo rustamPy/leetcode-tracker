@@ -30,7 +30,7 @@ export default function LoginOverlay({ onDismiss }) {
     setSession(trimmed);
     await recheckSession();
     refresh();
-    setStatus("Session saved — loading your data…");
+    setStatus("Session saved - loading your data…");
     setStatusType("ok");
     setTimeout(() => onDismiss(), 800);
     setSaving(false);
@@ -56,7 +56,13 @@ export default function LoginOverlay({ onDismiss }) {
             <p className="lo-step-hint">
               After signing in, open DevTools (F12) → Application → Cookies →
               copy the <code>LEETCODE_SESSION</code> value and paste it below. 
-              Don't worry, it's safe!
+              Don't worry, it's safe! For more information:{" "}
+              <button
+                className="lo-btn-inline-link"
+                onClick={() => window.open("/docs#cookie-disclaimer", "_blank", "noopener,noreferrer")}
+              >
+                Read cookie disclaimer.
+              </button>
             </p>
             <div className="lo-input-row">
               <input

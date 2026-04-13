@@ -99,7 +99,7 @@ def main():
             if rows:
                 found.add(company)
                 add_rows(company, rows, link_key)
-            status = "OK" if rows else "—"
+            status = "OK" if rows else "-"
             print(f"  [{done:>3}/{total}] {status}  {company}")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

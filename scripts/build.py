@@ -4,9 +4,9 @@ Master build orchestrator for leetcode-tracker data pipeline.
 
 Steps
 ─────
-1. fetch_problems_data  — LeetCode GraphQL → problemsData.json
-2. build_company_data   — GitHub repos (intermediate only) → companyData.json
-3. suggest_company_problems — TF-IDF AI suggestions → companyData.json
+1. fetch_problems_data  - LeetCode GraphQL → problemsData.json
+2. build_company_data   - GitHub repos (intermediate only) → companyData.json
+3. suggest_company_problems - TF-IDF AI suggestions → companyData.json
                               (strips scraped problems, keeps only companies + suggested)
 
 Usage
@@ -50,7 +50,7 @@ def main():
 
     step("build_company_data", build_company_data.main)
 
-    # 3. ML suggestions — computes AI suggestions and strips scraped data from output
+    # 3. ML suggestions - computes AI suggestions and strips scraped data from output
     if not args.skip_suggest:
         import suggest_company_problems
 

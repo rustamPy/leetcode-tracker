@@ -967,7 +967,7 @@
                 </div>
                 <div class="user-text">
                     <span id="display-name" class="display-name">Loading…</span>
-                    <span id="user-meta" class="user-meta">@— · #—</span>
+                    <span id="user-meta" class="user-meta">@- · #-</span>
                 </div>
             </div>
             <div class="actions">
@@ -1028,7 +1028,7 @@
         <div class="tab-panels">
 
             <section id="panel-daily" class="panel active">
-                <p class="panel-hint">Problem of the day — refreshes midnight UTC</p>
+                <p class="panel-hint">Problem of the day - refreshes midnight UTC</p>
                 <div id="daily-card" class="problem-card loading">Loading…</div>
                 <div id="focus-tip" class="focus-tip" style="display:none"></div>
             </section>
@@ -1140,7 +1140,7 @@
 
             window.lc.onUpdateAvailable(({ latest }) => {
                 const cmd = 'brew update && brew upgrade --cask leetcode-tracker';
-                $('update-banner-text').textContent = `🟡 v${latest} available — ${cmd}`;
+                $('update-banner-text').textContent = `🟡 v${latest} available - ${cmd}`;
                 $('update-banner').classList.remove('hidden');
                 setText('version-lbl', `v${latest} available ↑`);
             });
@@ -1196,7 +1196,7 @@
             $('login-overlay').classList.add('hidden');
             if (status.mismatch && status.sessionUsername) {
                 setText('mismatch-text',
-                    `Session is for "${status.sessionUsername}" — app is set to "${status.storedUsername}"`);
+                    `Session is for "${status.sessionUsername}" - app is set to "${status.storedUsername}"`);
                 $('btn-switch-user').dataset.sessionUser = status.sessionUsername;
                 $('mismatch-banner').classList.remove('hidden');
             } else {
@@ -1214,8 +1214,8 @@
 
         function renderProfile(data) {
             const p = data.profile ?? {};
-            setText('display-name', p.realName || data.username || '—');
-            setText('user-meta', `@${data.username ?? '—'} · #${p.ranking?.toLocaleString() ?? '—'}`);
+            setText('display-name', p.realName || data.username || '-');
+            setText('user-meta', `@${data.username ?? '-'} · #${p.ranking?.toLocaleString() ?? '-'}`);
 
             if (p.userAvatar) {
                 const img = $('avatar');
@@ -1262,15 +1262,15 @@
             let msg = '';
 
             if (streak === 0) {
-                msg = '💡 Start your streak today — even one problem counts!';
+                msg = '💡 Start your streak today - even one problem counts!';
             } else if (streak >= 30) {
-                msg = `🏆 Amazing! ${streak}-day streak — you're seriously committed.`;
+                msg = `🏆 Amazing! ${streak}-day streak - you're seriously committed.`;
             } else if (streak >= 7) {
-                msg = `🔥 ${streak}-day streak — you're on fire! Keep going.`;
+                msg = `🔥 ${streak}-day streak - you're on fire! Keep going.`;
             } else if ((solved.hard ?? 0) < 15) {
-                msg = '🎯 Try adding 1 Hard problem to your week — it sharpens problem-solving skills fast.';
+                msg = '🎯 Try adding 1 Hard problem to your week - it sharpens problem-solving skills fast.';
             } else if ((solved.medium ?? 0) < 50) {
-                msg = '⚙️  Focus on Medium problems — they cover most interview patterns.';
+                msg = '⚙️  Focus on Medium problems - they cover most interview patterns.';
             } else {
                 const pct = Math.round(((solved.total ?? 0) / (LC_TOTALS.easy + LC_TOTALS.medium + LC_TOTALS.hard)) * 100);
                 msg = `✦ You've solved ${pct}% of LeetCode. Keep pushing!`;
@@ -1591,7 +1591,7 @@
                 msg.className = 'settings-msg err';
                 return;
             }
-            msg.textContent = 'Session saved — fetching full history…';
+            msg.textContent = 'Session saved - fetching full history…';
             msg.className = 'settings-msg ok';
             const result = await window.lc.fetchUserData(storedUsername ?? await window.lc.getUsername());
             if (!result.error) {
@@ -1627,16 +1627,16 @@
             const storedUsername = await window.lc.getUsername();
             if (result.sessionUsername &&
                 result.sessionUsername.toLowerCase() !== storedUsername.toLowerCase()) {
-                // Mismatch — hide login overlay, show mismatch banner
+                // Mismatch - hide login overlay, show mismatch banner
                 $('login-overlay').classList.add('hidden');
                 setText('mismatch-text',
-                    `Session is for "${result.sessionUsername}" — app is set to "${storedUsername}"`);
+                    `Session is for "${result.sessionUsername}" - app is set to "${storedUsername}"`);
                 $('btn-switch-user').dataset.sessionUser = result.sessionUsername;
                 $('mismatch-banner').classList.remove('hidden');
                 return;
             }
 
-            // Match — fetch full data and dismiss overlay
+            // Match - fetch full data and dismiss overlay
             status.textContent = '✓ Logged in! Fetching your data…';
             status.className = 'login-status ok';
             const r = await window.lc.fetchUserData(storedUsername);

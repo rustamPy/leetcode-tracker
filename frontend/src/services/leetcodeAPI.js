@@ -53,7 +53,7 @@ query GetSubs($username: String!, $limit: Int!) {
   }
 }`;
 
-// Authenticated query — uses LEETCODE_SESSION cookie.
+// Authenticated query - uses LEETCODE_SESSION cookie.
 // userProgressQuestionList(questionStatus: SOLVED) returns every problem
 // the authenticated user has accepted. Pagination via skip/limit inside filters.
 // Query shape confirmed via LeetCode GraphQL introspection.

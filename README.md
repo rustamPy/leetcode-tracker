@@ -14,7 +14,7 @@
 
 ---
 
-## The Origin Story — or: How Desperation Becomes Software
+## The Origin Story - or: How Desperation Becomes Software
 
 It was a perfectly normal evening. I was staring at a LeetCode problem, a half-eaten bag of chips beside me, two cold coffees on the desk, and a growing sense that I had solved this exact tree problem before - somewhere, at some point, in a previous life.
 
@@ -32,17 +32,17 @@ Is it overkill? Absolutely. Does it spark joy? Mysteriously, yes.
 
 ## What It Does
 
-A Kanban board for your LeetCode grind, a company problem browser, an ML-powered suggestion engine, and a macOS menu bar app — all in one place.
+A board for your LeetCode grind, a company problem browser, an ML-powered suggestion engine, and a macOS menu bar app - all in one place.
 
 | Feature | Description |
 |---------|-------------|
-| **Kanban board** | To Do / In Progress / Completed columns, stored locally |
+| **Board style** | Daily Suggestions / In Progress / Recently (100) Completed columns, stored locally |
 | **Auto-completed column** | Pulls your accepted submissions from LeetCode automatically |
 | **Company browser** | Filter 3,600+ problems by company |
-| **Problem search** | Instant search — no network call, just fast |
+| **Problem search** | Instant search - no network call, just fast |
 | **Problem drawer** | Description, topic tags, and hints without leaving the page |
 | **Streak & stats** | Daily streak, acceptance rate, recent submissions |
-| **ML suggestions** | "Suggested by similarity" — problems ranked by cosine similarity to a company's problem set |
+| **ML suggestions** | "Suggested by similarity" - problems ranked by cosine similarity to a company's problem set |
 | **Menu bar app** | Everything above, accessible from your macOS menu bar |
 
 **Live demo:** https://rustampy.github.io/leetcode-tracker/
@@ -53,7 +53,7 @@ A Kanban board for your LeetCode grind, a company problem browser, an ML-powered
 
 The star of the show. Lives quietly in your macOS menu bar, patiently waiting for you while you "take a quick break" that lasts two hours.
 
-### Option A — Homebrew (the easy way)
+### Option A - Homebrew (the easy way)
 
 ```bash
 brew tap rustamPy/tap
@@ -62,18 +62,18 @@ brew install --cask leetcode-tracker
 
 That's it. Homebrew handles everything, including the macOS security warnings that would otherwise haunt you.
 
-### Option B — Manual Download
+### Option B - Manual Download
 
 1. Go to the [latest release](https://github.com/rustamPy/leetcode-tracker/releases/latest)
 2. Download the right file for your Mac:
 
 | File | Who it's for |
 |------|-------------|
-| `LeetCode.Tracker-*-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) — if you bought your Mac after 2020, this is you |
-| `LeetCode.Tracker-*-x64.dmg` | Intel Mac — if your Mac makes fan noises during Zoom calls, this is you |
+| `LeetCode.Tracker-*-arm64.dmg` | Apple Silicon (M1 / M2 / M3 / M4) - if you bought your Mac after 2020, this is you |
+| `LeetCode.Tracker-*-x64.dmg` | Intel Mac - if your Mac makes fan noises during Zoom calls, this is you |
 
 3. Open the `.dmg`, drag the app to `/Applications`
-4. macOS will refuse to open it — this is expected, not a disaster
+4. macOS will refuse to open it - this is expected, not a disaster
 
 **Fix the "app is damaged" warning** (it's not damaged, macOS is just overprotective):
 
@@ -82,7 +82,7 @@ Run this once in Terminal:
 find "/Applications/LeetCode Tracker.app" -exec xattr -d com.apple.quarantine {} \; 2>/dev/null; true
 ```
 
-Or double-click the `Remove Quarantine.command` file inside the `.dmg` — it does the same thing with less typing.
+Or double-click the `Remove Quarantine.command` file inside the `.dmg` - it does the same thing with less typing.
 
 ### Updating
 
@@ -96,16 +96,16 @@ download the new .dmg and repeat the steps above
 
 ---
 
-## Web App — Running Locally
+## Web App - Running Locally
 
 Want to run the full web app on your machine, or fork it for yourself? Here's how.
 
 ### What you need
 
-- **Python 3.10+** — for the backend and data scripts
-- **Node.js 18+** — for the frontend
+- **Python 3.10+** - for the backend and data scripts
+- **Node.js 18+** - for the frontend
 
-### Step 1 — Build the data files
+### Step 1 - Build the data files
 
 These scripts generate the JSON files the app uses. Run them once before starting anything else:
 
@@ -121,7 +121,7 @@ python3 scripts/suggest_company_problems.py  # ML similarity suggestions
 
 The first three scripts output static JSON files that are bundled into the app at build time. `fetch_user_data.py` also runs in CI on every push to keep your live stats current.
 
-### Step 2 — Start the backend
+### Step 2 - Start the backend
 
 ```bash
 cd backend
@@ -130,9 +130,9 @@ uvicorn main:app --reload
 # now running at http://localhost:8000
 ```
 
-The backend is only needed for local development — it handles task storage and proxies LeetCode's API so your browser doesn't get blocked by CORS.
+The backend is only needed for local development - it handles task storage and proxies LeetCode's API so your browser doesn't get blocked by CORS.
 
-### Step 3 — Start the frontend
+### Step 3 - Start the frontend
 
 ```bash
 cd frontend
@@ -149,7 +149,7 @@ Open `http://localhost:5173` and you're in. The dev server automatically routes 
 
 Want your own live version? Four steps.
 
-### Step 1 — Deploy the Cloudflare Worker
+### Step 1 - Deploy the Cloudflare Worker
 
 The live site needs a proxy to talk to LeetCode's API from the browser. Cloudflare Workers are free and perfect for this.
 
@@ -157,14 +157,14 @@ The live site needs a proxy to talk to LeetCode's API from the browser. Cloudfla
 cd cloudflare-worker
 npx wrangler login
 npx wrangler deploy
-# copy the output URL — you'll need it in a moment
+# copy the output URL - you'll need it in a moment
 ```
 
 Alternatively, paste `cloudflare-worker/worker.js` directly into the [Cloudflare dashboard](https://dash.cloudflare.com) under **Workers & Pages → Create Worker**.
 
 Before deploying, open `cloudflare-worker/worker.js` and update `ALLOWED_ORIGIN` to match your GitHub Pages URL (e.g. `https://yourusername.github.io`).
 
-### Step 2 — Add the Worker URL to GitHub Secrets
+### Step 2 - Add the Worker URL to GitHub Secrets
 
 In your repo on GitHub: **Settings → Secrets and variables → Actions → New repository secret**
 
@@ -172,16 +172,16 @@ In your repo on GitHub: **Settings → Secrets and variables → Actions → New
 |------|-------|
 | `VITE_GQL_PROXY` | The Worker URL from Step 1 |
 
-### Step 3 — Push to `main`
+### Step 3 - Push to `main`
 
 GitHub Actions takes over from here:
 1. Fetches your LeetCode profile stats
 2. Builds the Vite app with your Worker URL baked in
 3. Deploys everything to GitHub Pages
 
-The problem list, company data, and ML suggestions are pre-generated locally and committed to the repo — they don't regenerate in CI (that would take forever).
+The problem list, company data, and ML suggestions are pre-generated locally and committed to the repo - they don't regenerate in CI (that would take forever).
 
-### Step 4 — Relax
+### Step 4 - Relax
 
 Your site rebuilds automatically every day at 06:00 UTC to refresh your stats. You don't have to do anything.
 
@@ -189,7 +189,7 @@ Your site rebuilds automatically every day at 06:00 UTC to refresh your stats. Y
 
 ## How the ML Suggestions Work
 
-When you browse a company in the app, you'll see a **"Suggested by similarity"** section below the known problems. These aren't random — they're ranked by how similar they are to that company's typical problem style.
+When you browse a company in the app, you'll see a **"Suggested by similarity"** section below the known problems. These aren't random - they're ranked by how similar they are to that company's typical problem style.
 
 Each problem is represented as a vector combining:
 
@@ -215,10 +215,10 @@ git add frontend/src/data/companyData.json && git commit -m "refresh ML suggesti
 ## Project Structure
 
 ```
-frontend/            React + Vite — the web app (deployed to GitHub Pages)
-backend/             FastAPI — local dev only, handles tasks and proxies
-cloudflare-worker/   Cloudflare Worker — GraphQL proxy for production
-menubar-app/         Electron — the macOS menu bar app
+frontend/            React + Vite - the web app (deployed to GitHub Pages)
+backend/             FastAPI - local dev only, handles tasks and proxies
+cloudflare-worker/   Cloudflare Worker - GraphQL proxy for production
+menubar-app/         Electron - the macOS menu bar app
 scripts/             Data generation scripts (Python)
 leets/               Raw LeetCode CSV problem dataset
 ```
@@ -251,7 +251,7 @@ Found a bug? Have an idea? Want to make this even more unnecessarily feature-ric
 - The menu bar app is Electron. Its main process is `menubar-app/main.js`.
 - Data scripts are in `scripts/`. They're Python and meant to be run manually, not in CI (except `fetch_user_data.py`).
 - There are no tests yet. (I know. I know.)
-- `companyData.json` and `problemsData.json` are large generated files — don't edit them by hand.
+- `companyData.json` and `problemsData.json` are large generated files - don't edit them by hand.
 
 ### Building the menu bar app locally
 
@@ -271,10 +271,10 @@ npm run dist:x64   # Intel only
 
 This project stands on the shoulders of people who did the tedious data work so no one else had to:
 
-- **Ashutosh Papnoi** — compiled and maintains the LeetCode problem dataset used here:  
+- **Ashutosh Papnoi** - compiled and maintains the LeetCode problem dataset used here:  
   [Latest Complete LeetCode Problems Dataset 2025](https://www.kaggle.com/datasets/ashutoshpapnoi/latest-complete-leetcode-problems-dataset-2025)
 
-- **Gaurav Kumar & Snehasish Roy** — built and maintain the company-wise problem mappings that power the company browser:  
+- **Gaurav Kumar & Snehasish Roy** - built and maintain the company-wise problem mappings that power the company browser:  
   [liquidslr/interview-company-wise-problems](https://github.com/liquidslr/interview-company-wise-problems)  
   [snehasishroy/leetcode-companywise-interview-questions](https://github.com/snehasishroy/leetcode-companywise-interview-questions)
 

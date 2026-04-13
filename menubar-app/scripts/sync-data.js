@@ -20,4 +20,4 @@ for (const f of FILES) {
         console.warn(`  ⚠  ${f} not found at ${src}`);
     }
 }
-console.log(`\nDone — ${ok}/${FILES.length} files synced to data/`);
+console.log(`\nDone - ${ok}/${FILES.length} files synced to data/`);

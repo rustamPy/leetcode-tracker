@@ -12,7 +12,7 @@ function ProblemRow({ p, company, onAdd, suggested = false, solvedSlugs, added =
         <div className="modal-row-top">
           <span className="modal-row-title" title={p.title}>{p.id ? `${p.id}. ` : ""}{p.title}</span>
           <span className="modal-row-diff" style={{ color: DIFF_COLOR[p.difficulty] ?? "#888" }}>{p.difficulty}</span>
-          {p.premium && <span className="premium-badge" title="Premium — requires LeetCode subscription">★</span>}
+          {p.premium && <span className="premium-badge" title="Premium - requires LeetCode subscription">★</span>}
           {solved && <span className="solved-badge" title="You&apos;ve solved this problem">✓ Done</span>}
         </div>
         {p.companies?.length > 0 && (
@@ -76,7 +76,7 @@ export default function AddTaskModal({ initialStatus, onClose, onAdd }) {
       return;
     }
     setSuggested([]);
-    // Search mode — instant local search over all 3,647 problems
+    // Search mode - instant local search over all 3,647 problems
     setResults(searchAllProblems({ query, difficulty, topic }));
   }, [mode, company, difficulty, topic, query]);
 
