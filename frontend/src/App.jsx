@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Routes, Route, NavLink } from "react-router-dom";
 import { LCProvider, useLeetCode } from "./hooks/useLeetCode";
 import { getSession } from "./services/leetcodeAPI";
 import Profile from "./components/Profile";
@@ -12,12 +13,8 @@ import "./App.css";
 function AppInner() {
   const { username, sessionChecked, sessionMismatch } = useLeetCode();
   const [showLogin, setShowLogin] = useState(false);
-  // Track when the user explicitly dismissed the overlay without adding a session.
-  // Prevents the overlay re-appearing on every render while they browse without one.
   const [sessionDismissed, setSessionDismissed] = useState(false);
 
-  // Show login overlay once session check is done and no session is stored,
-  // unless the user has already dismissed it this session.
   const showLoginOverlay = sessionChecked && !getSession() && !sessionDismissed;
 
   const handleDismissLogin = () => {
@@ -45,16 +42,39 @@ function AppInner() {
             Open Profile
           </a>
         </div>
+        <nav className="tab-bar" aria-label="Main navigation">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Board
+          </NavLink>
+          <NavLink
+            to="/docs"
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Docs &amp; Install
+          </NavLink>
+        </nav>
       </header>
 
       <main className="main">
         <Profile />
         <StatsStrip />
-        <section className="board-section">
-          <div className="section-label">BOARD</div>
-          <Board />
-        </section>
-        <DocsSection />
+
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <section className="board-section">
+                <div className="section-label">BOARD</div>
+                <Board />
+              </section>
+            }
+          />
+          <Route path="/docs" element={<DocsSection />} />
+        </Routes>
       </main>
 
       <footer className="footer">

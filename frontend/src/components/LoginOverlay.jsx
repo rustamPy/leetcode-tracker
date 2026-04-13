@@ -30,7 +30,7 @@ export default function LoginOverlay({ onDismiss }) {
     setSession(trimmed);
     await recheckSession();
     refresh();
-    setStatus("Session saved — loading your data…");
+    setStatus("Session saved - loading your data…");
     setStatusType("ok");
     setTimeout(() => onDismiss(), 800);
     setSaving(false);
@@ -58,7 +58,7 @@ export default function LoginOverlay({ onDismiss }) {
               copy the <code>LEETCODE_SESSION</code> value and paste it below. 
               Don't worry, it's safe! For more information: Read 
                <a
-                href="#cookie-disclaimer"
+                href="/docs"
                 className="docs-inline-link"> cookie disclaimer.
               </a>
             </p>

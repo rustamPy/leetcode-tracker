@@ -9,7 +9,7 @@ const sourcePng = path.join(assetsDir, 'icon-source.png');
 const icnsOut = path.join(assetsDir, 'icon.icns');
 
 if (!fs.existsSync(sourcePng)) {
-    console.error(`ERROR: ${sourcePng} not found — add a 1024×1024 PNG as assets/icon-source.png`);
+    console.error(`ERROR: ${sourcePng} not found - add a 1024×1024 PNG as assets/icon-source.png`);
     process.exit(1);
 }
 

@@ -35,7 +35,7 @@
   --hard: #ef4743;
   --streak: #ff9f0a;
 
-  /* Radii — both naming conventions for cross-app compatibility */
+  /* Radii - both naming conventions for cross-app compatibility */
   --radius: 10px;
   --radius-sm: 7px;
   --r: var(--radius);

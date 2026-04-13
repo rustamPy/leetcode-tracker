@@ -33,10 +33,10 @@ jobs:
         run: |
           if git ls-remote --tags origin "refs/tags/v${{ steps.read.outputs.version }}" | grep -q .; then
             echo "is_new=false" >> "$GITHUB_OUTPUT"
-            echo "Tag v${{ steps.read.outputs.version }} already exists — skipping release."
+            echo "Tag v${{ steps.read.outputs.version }} already exists - skipping release."
           else
             echo "is_new=true" >> "$GITHUB_OUTPUT"
-            echo "Tag v${{ steps.read.outputs.version }} is new — will release."
+            echo "Tag v${{ steps.read.outputs.version }} is new - will release."
           fi
 
   tests:
@@ -95,7 +95,7 @@ jobs:
           body: |
             ## LeetCode Tracker v${{ needs.check-version.outputs.version }}
 
-            macOS menu bar app — track your LeetCode progress, prep for company interviews, and get a daily problem suggestion right from your menu bar.
+            macOS menu bar app - track your LeetCode progress, prep for company interviews, and get a daily problem suggestion right from your menu bar.
 
             ---
 
@@ -110,13 +110,13 @@ jobs:
 
             ### Install
 
-            **Option A — Homebrew (recommended, no Gatekeeper warning):**
+            **Option A - Homebrew (recommended, no Gatekeeper warning):**
             ```bash
             brew tap rustamPy/tap
             brew install --cask leetcode-tracker
             ```
 
-            **Option B — Manual:**
+            **Option B - Manual:**
             1. Download the `.dmg` for your Mac
             2. Open it and drag **LeetCode Tracker** to `/Applications`
             3. Eject the disk image
@@ -129,9 +129,9 @@ jobs:
             ---
 
             ### Features
-            - Streak counter in the menu bar — updates live
+            - Streak counter in the menu bar - updates live
             - Daily problem suggestion (changes at midnight UTC)
-            - Company interview prep — pick a company, see top questions
+            - Company interview prep - pick a company, see top questions
             - Recent accepted submissions
             - Refresh live data from LeetCode
             - Switch LeetCode username from the settings panel
@@ -149,7 +149,7 @@ jobs:
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
         run: |
           if [ -z "$TAP_GITHUB_TOKEN" ]; then
-            echo "TAP_GITHUB_TOKEN not set — skipping cask update"
+            echo "TAP_GITHUB_TOKEN not set - skipping cask update"
             exit 0
           fi
 

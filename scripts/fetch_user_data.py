@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fetch LeetCode profile + accepted submissions via LeetCode's public GraphQL API.
-Run by GitHub Actions before `npm run build` — no browser calls needed.
+Run by GitHub Actions before `npm run build` - no browser calls needed.
 """
 
 import json, time, sys, urllib.request, urllib.error

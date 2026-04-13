@@ -92,7 +92,7 @@ export default function Board() {
   return (
     <div className="board-wrap">
       <div className="board">
-        {/* Column 1 — Daily */}
+        {/* Column 1 - Daily */}
         <DailyColumn
           filterCompany={filterCompany}
           onCompanyChange={applyCompanyFilter}
@@ -100,7 +100,7 @@ export default function Board() {
           onOpen={handleOpenProblem}
         />
 
-        {/* Column 2 — In Progress */}
+        {/* Column 2 - In Progress */}
         <Column
           status="doing"
           tasks={doingTasks}
@@ -109,7 +109,7 @@ export default function Board() {
           onOpen={handleOpenProblem}
         />
 
-        {/* Column 3 — Recent 100 */}
+        {/* Column 3 - Recent 100 */}
         <Column
           status="recent"
           tasks={recent100}

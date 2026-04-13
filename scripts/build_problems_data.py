@@ -2,7 +2,7 @@
 """
 Converts the latest leets/leetcode_YYYY.csv into frontend/src/data/problemsData.json.
 
-Output shape — object keyed by titleSlug:
+Output shape - object keyed by titleSlug:
 {
   "two-sum": {
     "id": 1,

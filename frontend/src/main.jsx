@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "./tokens.css";
 import "./index.css";
 import App from "./App.jsx";
@@ -14,8 +15,12 @@ if (hash.startsWith("#lc-session=")) {
   history.replaceState(null, "", window.location.pathname + window.location.search);
 }
 
+const base = import.meta.env.BASE_URL ?? "/";
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <BrowserRouter basename={base}>
+      <App />
+    </BrowserRouter>
   </StrictMode>
 );

@@ -96,6 +96,40 @@ body {
   color: #000;
 }
 
+/* ─── Tab bar ────────────────────────────────────────────────────────────────── */
+.tab-bar {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 2px;
+}
+
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+}
+
+.tab-btn--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ─── Section label ─────────────────────────────────────────────────────────── */
 .board-section {
   display: flex;
@@ -1532,7 +1566,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Solved row — strongly greyed-out to push completed work to the background */
+/* Solved row - strongly greyed-out to push completed work to the background */
 .modal-row--solved {
   opacity: 0.35;
   filter: saturate(0.3);
@@ -2417,37 +2451,6 @@ body {
   border-radius: var(--r);
   background: var(--surface);
   overflow: hidden;
-}
-
-.docs-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text);
-  font-family: var(--mono);
-  transition: background 0.12s;
-}
-
-.docs-toggle:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.docs-toggle-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.docs-toggle-icon {
-  font-size: 0.7rem;
-  color: var(--muted);
 }
 
 .docs-body {

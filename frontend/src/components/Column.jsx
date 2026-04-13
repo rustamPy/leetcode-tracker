@@ -7,7 +7,7 @@ const COL = {
 };
 
 export default function Column({ status, tasks, onMove, onDelete, onAdd, onOpen, readOnly }) {
-  const { label, marker, color } = COL[status] ?? { label: status, marker: "—", color: "#888" };
+  const { label, marker, color } = COL[status] ?? { label: status, marker: "-", color: "#888" };
   const [search, setSearch] = useState("");
 
   const visibleTasks = useMemo(() => {

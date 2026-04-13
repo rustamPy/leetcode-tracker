@@ -1,10 +1,8 @@
-import { useState } from "react";
-
 const STEPS = [
   {
     num: "01",
     title: "Open the menu bar app",
-    body: "Click the LeetCode Tracker icon in your macOS menu bar. The board, company browser, and your stats are all one click away — no browser required.",
+    body: "Click the LeetCode Tracker icon in your macOS menu bar. The board, company browser, and your stats are all one click away - no browser required.",
   },
   {
     num: "02",
@@ -25,47 +23,31 @@ const STEPS = [
         >
           cookie disclaimer
         </a>{" "}
-        below — it's safe.
+        below - it's safe.
       </>
     ),
   },
   {
     num: "03",
-    title: "Manage your problem board",
-    body: "Drag problems between To Do / In Progress / Done. Accepted LeetCode submissions appear in the Completed column automatically. Add problems manually with the + button.",
-  },
-  {
-    num: "04",
     title: "Browse by company",
     body: "Pick any of 3,600+ company tags to filter the full problem list. The \"Suggested\" tab shows problems ranked by ML similarity to that company's typical problem style.",
   },
   {
-    num: "05",
+    num: "04",
     title: "Open a problem drawer",
-    body: "Click any problem card to open the side drawer — full description, topic tags, hints, and a direct link to LeetCode, all without leaving the app.",
+    body: "Click any problem card to open the side drawer - full description, topic tags, hints, and a direct link to LeetCode, all without leaving the app.",
   },
 ];
 
 export default function DocsSection() {
-  const [open, setOpen] = useState(false);
-
   return (
     <section className="docs-section">
-      <button
-        className="docs-toggle"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-      >
-        <span className="docs-toggle-label">DOCS &amp; INSTALL</span>
-        <span className="docs-toggle-icon">{open ? "▲" : "▼"}</span>
-      </button>
 
-      {open && (
-        <div className="docs-body">
+      <div className="docs-body">
 
           {/* ── Install ────────────────────────────────────────────── */}
           <div className="docs-block">
-            <div className="docs-block-label">INSTALL — macOS only</div>
+            <div className="docs-block-label">INSTALL - macOS only</div>
 
             <div className="docs-install-cards">
               <div className="docs-install-card docs-install-card--primary">
@@ -85,7 +67,7 @@ export default function DocsSection() {
                   </pre>
                 </div>
                 <div className="docs-install-card-body docs-muted">
-                  To update later: <code>brew upgrade --cask leetcode-tracker</code>
+                  To update later: <code>brew update && brew reinstall --cask leetcode-tracker</code>
                 </div>
               </div>
 
@@ -155,7 +137,7 @@ export default function DocsSection() {
               <div className="docs-disclaimer-icon">🔒</div>
               <div className="docs-disclaimer-content">
                 <p className="docs-disclaimer-headline">
-                  We ask for your <code>LEETCODE_SESSION</code> cookie — here's
+                  We ask for your <code>LEETCODE_SESSION</code> cookie - here's
                   exactly what we do (and don't) do with it.
                 </p>
                 <ul className="docs-disclaimer-list">
@@ -176,7 +158,7 @@ export default function DocsSection() {
                     <strong>How it travels.</strong> API calls go directly from
                     your browser/app to LeetCode (or through the Cloudflare
                     proxy that relays requests to LeetCode). The proxy forwards
-                    the request and returns the response — it does not log, store,
+                    the request and returns the response - it does not log, store,
                     or inspect the cookie value. The{" "}
                     <a
                       className="docs-inline-link"
@@ -186,7 +168,7 @@ export default function DocsSection() {
                     >
                       proxy source code is public
                     </a>{" "}
-                    — feel free to read it.
+                    - feel free to read it.
                   </li>
                   <li>
                     <strong>No accounts, no collection.</strong> This app has no
@@ -195,7 +177,7 @@ export default function DocsSection() {
                     if it wanted to.
                   </li>
                   <li>
-                    <strong>Revoking access.</strong> Log out of LeetCode — that
+                    <strong>Revoking access.</strong> Log out of LeetCode - that
                     invalidates the session immediately. You can also clear
                     the stored value any time in Settings → Storage.
                   </li>
@@ -217,7 +199,6 @@ export default function DocsSection() {
           </div>
 
         </div>
-      )}
     </section>
   );
 }

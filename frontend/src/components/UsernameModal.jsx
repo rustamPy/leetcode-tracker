@@ -79,7 +79,7 @@ export default function UsernameModal({ onClose }) {
     clearCacheForUser(current);
     refresh();
     await recheckSession();
-    setSessMsg(trimmed ? "Session saved — refreshing data…" : "Session cleared.");
+    setSessMsg(trimmed ? "Session saved - refreshing data…" : "Session cleared.");
     setTimeout(() => setSessMsg(""), 3000);
   };
 
@@ -196,7 +196,7 @@ export default function UsernameModal({ onClose }) {
 
         {/* Session token */}
         <div className="um-section">
-          <label className="um-label">LeetCode session <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional — unlocks full solve history)</span></label>
+          <label className="um-label">LeetCode session <span style={{ fontWeight: 400, opacity: 0.6 }}>(optional - unlocks full solve history)</span></label>
           <div className="um-input-wrap">
             <input
               className="um-input"
@@ -211,7 +211,7 @@ export default function UsernameModal({ onClose }) {
           <p style={{ fontSize: "0.72rem", opacity: 0.5, margin: "4px 0 8px" }}>
             Find it: leetcode.com → DevTools (F12) → Application → Cookies → LEETCODE_SESSION:
             <a
-            href="#cookie-disclaimer"
+            href="/docs"
             className="docs-inline-link">Cookie disclaimer.
             </a>
           </p>

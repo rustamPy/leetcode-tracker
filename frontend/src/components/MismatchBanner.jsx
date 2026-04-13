@@ -20,7 +20,7 @@ export default function MismatchBanner({ onRequestLogin }) {
   return (
     <div className="mm-banner" role="alert" data-testid="mismatch-banner">
       <span className="mm-text">
-        Session belongs to <strong>{sessionUser}</strong> — app is tracking{" "}
+        Session belongs to <strong>{sessionUser}</strong> - app is tracking{" "}
         <strong>{username}</strong>
       </span>
       <div className="mm-actions">

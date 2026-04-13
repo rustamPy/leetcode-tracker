@@ -272,7 +272,7 @@ ipcMain.handle('check-session', async () => {
         const mismatch = sessionUsername.toLowerCase() !== storedUsername.toLowerCase();
         return { hasSession: true, sessionUsername, storedUsername, mismatch };
     } catch {
-        // Network error — session file exists but couldn't verify; don't block the UI
+        // Network error - session file exists but couldn't verify; don't block the UI
         return { hasSession: true, sessionUsername: null, storedUsername };
     }
 });
@@ -367,7 +367,7 @@ query GetSubs($u: String!, $limit: Int!) {
   }
 }`;
 
-// Authenticated query — requires LEETCODE_SESSION cookie.
+// Authenticated query - requires LEETCODE_SESSION cookie.
 // userProgressQuestionList(questionStatus: SOLVED) returns every problem
 // the authenticated user has accepted. Pagination via skip/limit inside filters.
 // Query shape confirmed via LeetCode GraphQL introspection.
