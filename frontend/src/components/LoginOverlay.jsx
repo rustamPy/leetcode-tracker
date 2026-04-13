@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { setSession } from "../services/leetcodeAPI";
 import { useLeetCode } from "../hooks/useLeetCode";
 
@@ -10,7 +9,6 @@ import { useLeetCode } from "../hooks/useLeetCode";
  */
 export default function LoginOverlay({ onDismiss }) {
   const { username, recheckSession, refresh } = useLeetCode();
-  const navigate = useNavigate();
   const [phase, setPhase] = useState(1); // 1 = prompt login, 2 = paste cookie
   const [token, setToken] = useState("");
   const [status, setStatus] = useState("");
