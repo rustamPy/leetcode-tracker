@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, NavLink } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
 import { LCProvider, useLeetCode } from "./hooks/useLeetCode";
 import { getSession } from "./services/leetcodeAPI";
 import Profile from "./components/Profile";
@@ -8,12 +8,15 @@ import Board from "./components/Board";
 import LoginOverlay from "./components/LoginOverlay";
 import MismatchBanner from "./components/MismatchBanner";
 import DocsSection from "./components/DocsSection";
+import EditorPage from "./components/EditorPage";
 import "./App.css";
 
 function AppInner() {
   const { username, sessionChecked, sessionMismatch } = useLeetCode();
   const [showLogin, setShowLogin] = useState(false);
   const [sessionDismissed, setSessionDismissed] = useState(false);
+  const { pathname } = useLocation();
+  const isEditor = pathname === "/editor";
 
   const showLoginOverlay = sessionChecked && !getSession() && !sessionDismissed;
 
@@ -23,7 +26,7 @@ function AppInner() {
   };
 
   return (
-    <div className="app">
+    <div className={`app${isEditor ? " app--editor" : ""}`}>
       {(showLoginOverlay || showLogin) && (
         <LoginOverlay onDismiss={handleDismissLogin} />
       )}
@@ -56,33 +59,50 @@ function AppInner() {
           >
             Docs &amp; Install
           </NavLink>
+          <NavLink
+            to="/editor"
+            className={({ isActive }) => `tab-btn${isActive ? " tab-btn--active" : ""}`}
+          >
+            Python Editor
+          </NavLink>
         </nav>
       </header>
 
-      <main className="main">
-        <Profile />
-        <StatsStrip />
-
-        <Routes>
-          <Route
-            path="/"
-            element={
+      <Routes>
+        <Route path="/editor" element={<EditorPage />} />
+        <Route
+          path="/"
+          element={
+            <main className="main">
+              <Profile />
+              <StatsStrip />
               <section className="board-section">
                 <div className="section-label">BOARD</div>
                 <Board />
               </section>
-            }
-          />
-          <Route path="/docs" element={<DocsSection />} />
-        </Routes>
-      </main>
+            </main>
+          }
+        />
+        <Route
+          path="/docs"
+          element={
+            <main className="main">
+              <Profile />
+              <StatsStrip />
+              <DocsSection />
+            </main>
+          }
+        />
+      </Routes>
 
-      <footer className="footer">
-        <span>{username} &mdash; LeetCode Tracker</span>
-        <a href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
-          leetcode.com/{username}
-        </a>
-      </footer>
+      {!isEditor && (
+        <footer className="footer">
+          <span>{username} &mdash; LeetCode Tracker</span>
+          <a href={`https://leetcode.com/${username}`} target="_blank" rel="noreferrer">
+            leetcode.com/{username}
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

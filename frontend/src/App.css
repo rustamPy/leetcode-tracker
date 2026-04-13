@@ -16,6 +16,12 @@ body {
   min-height: 100vh;
 }
 
+/* On the editor route: lock to viewport so the window never scrolls */
+.app--editor {
+  height: 100vh;
+  overflow: hidden;
+}
+
 .main {
   flex: 1;
   max-width: 1360px;
@@ -2744,4 +2750,130 @@ body {
 
 .docs-inline-link:hover {
   text-decoration: underline;
+}
+
+/* ─── Python Editor Page ─────────────────────────────────────────────────────── */
+.editor-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;  /* window never scrolls; editor/output scroll internally */
+  min-height: 0;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.editor-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.editor-status {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.editor-status--loading {
+  color: var(--muted);
+}
+
+.editor-status--error {
+  color: var(--hard);
+}
+
+.editor-status--ready {
+  color: var(--easy);
+}
+
+.editor-run-btn {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 18px;
+  background: var(--easy);
+  color: #000;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+}
+
+.editor-run-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.editor-run-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  flex: 1;
+  min-height: 0;       /* critical: allows flex children to shrink below content size */
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .editor-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 220px;
+  }
+}
+
+.editor-pane {
+  min-height: 0;
+  border-right: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .editor-pane {
+    border-right: none;
+    border-bottom: 1.5px solid var(--border);
+  }
+}
+
+.editor-output-pane {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface1);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-output-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 10px 16px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.editor-output {
+  flex: 1;
+  margin: 0;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--text);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
 }

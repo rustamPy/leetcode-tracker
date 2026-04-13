@@ -13,6 +13,7 @@
     "sync:tokens": "node -e \"require('fs').copyFileSync('src/tokens.css', '../menubar-app/renderer/tokens.css')\""
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0"
