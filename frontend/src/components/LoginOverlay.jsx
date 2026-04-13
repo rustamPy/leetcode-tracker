@@ -56,7 +56,11 @@ export default function LoginOverlay({ onDismiss }) {
             <p className="lo-step-hint">
               After signing in, open DevTools (F12) → Application → Cookies →
               copy the <code>LEETCODE_SESSION</code> value and paste it below. 
-              Don't worry, it's safe!
+              Don't worry, it's safe! For more information: Read 
+               <a
+                href="#cookie-disclaimer"
+                className="docs-inline-link"> cookie disclaimer.
+              </a>
             </p>
             <div className="lo-input-row">
               <input

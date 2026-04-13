@@ -209,7 +209,11 @@ export default function UsernameModal({ onClose }) {
             />
           </div>
           <p style={{ fontSize: "0.72rem", opacity: 0.5, margin: "4px 0 8px" }}>
-            Find it: leetcode.com → DevTools (F12) → Application → Cookies → LEETCODE_SESSION
+            Find it: leetcode.com → DevTools (F12) → Application → Cookies → LEETCODE_SESSION:
+            <a
+            href="#cookie-disclaimer"
+            className="docs-inline-link">Cookie disclaimer.
+            </a>
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn-primary um-confirm" style={{ flex: 1 }} onClick={handleSaveSession}>

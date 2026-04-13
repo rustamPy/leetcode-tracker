@@ -6,6 +6,7 @@ import StatsStrip from "./components/StatsStrip";
 import Board from "./components/Board";
 import LoginOverlay from "./components/LoginOverlay";
 import MismatchBanner from "./components/MismatchBanner";
+import DocsSection from "./components/DocsSection";
 import "./App.css";
 
 function AppInner() {
@@ -53,6 +54,7 @@ function AppInner() {
           <div className="section-label">BOARD</div>
           <Board />
         </section>
+        <DocsSection />
       </main>
 
       <footer className="footer">

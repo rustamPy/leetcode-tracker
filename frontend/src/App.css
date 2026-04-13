@@ -2410,3 +2410,335 @@ body {
 .btn-daily-start:hover {
   opacity: 0.85;
 }
+
+/* ─── Docs Section ───────────────────────────────────────────────────────────── */
+.docs-section {
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.docs-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--mono);
+  transition: background 0.12s;
+}
+
+.docs-toggle:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.docs-toggle-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.docs-toggle-icon {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.docs-body {
+  border-top: 1.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.docs-block {
+  padding: 28px 28px 32px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.docs-block:last-child {
+  border-bottom: none;
+}
+
+.docs-block-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
+}
+
+/* Install cards */
+.docs-install-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 760px) {
+  .docs-install-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.docs-install-card {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.docs-install-card--primary {
+  border-color: rgba(255, 161, 22, 0.35);
+  background: rgba(255, 161, 22, 0.06);
+}
+
+.docs-install-card-badge {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(255, 161, 22, 0.15);
+  border: 1px solid rgba(255, 161, 22, 0.3);
+  padding: 2px 8px;
+  border-radius: 20px;
+  align-self: flex-start;
+}
+
+.docs-install-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.docs-install-card-body {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.55;
+}
+
+.docs-codeblock {
+  background: #0d0d0f;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+.docs-codeblock--sm {
+  padding: 10px 14px;
+}
+
+.docs-codeblock pre {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: #e5e5ea;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.docs-code-comment {
+  color: rgba(235, 235, 245, 0.4);
+}
+
+.docs-muted {
+  color: var(--muted) !important;
+  font-size: 0.76rem !important;
+}
+
+.docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-family: var(--mono);
+}
+
+.docs-table th {
+  text-align: left;
+  padding: 6px 10px;
+  color: var(--muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.docs-table td {
+  padding: 7px 10px;
+  color: var(--text2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.docs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.docs-table code {
+  color: var(--accent);
+}
+
+/* Steps */
+.docs-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.docs-step {
+  display: flex;
+  gap: 18px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.docs-step:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.docs-step:first-child {
+  padding-top: 0;
+}
+
+.docs-step-num {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  width: 28px;
+  padding-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.docs-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.docs-step-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.docs-step-body {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.55;
+}
+
+.docs-step-body code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* Disclaimer */
+.docs-block--disclaimer {
+  background: rgba(10, 132, 255, 0.04);
+  border-top: 1.5px solid rgba(10, 132, 255, 0.15);
+}
+
+.docs-disclaimer {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.docs-disclaimer-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.docs-disclaimer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.docs-disclaimer-headline {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.docs-disclaimer-headline code {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.docs-disclaimer-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.docs-disclaimer-list li {
+  font-size: 0.83rem;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.docs-disclaimer-list code {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+.docs-disclaimer-footer {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.docs-inline-link {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.docs-inline-link:hover {
+  text-decoration: underline;
+}
